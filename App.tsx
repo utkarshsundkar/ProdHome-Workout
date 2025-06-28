@@ -1,15 +1,16 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Text, TouchableOpacity, View, StyleSheet } from 'react-native';
 import HomeScreen from './screens/HomeScreen';
 import WorkoutScreen from './screens/WorkoutScreen';
+import FocusScreen from './screens/FocusScreen';
 
 const Tab = createBottomTabNavigator();
 
-const CustomTabBar = ({ state, descriptors, navigation }) => {
+const CustomTabBar = ({ state, descriptors, navigation, isNightMode }) => {
   return (
-    <View style={styles.tabBarContainer}>
+    <View style={[styles.tabBarContainer, { backgroundColor: isNightMode ? '#000' : '#fff' }]}>
       {state.routes.map((route, index) => {
         const { options } = descriptors[route.key];
         const label =
@@ -19,9 +20,9 @@ const CustomTabBar = ({ state, descriptors, navigation }) => {
             ? options.title
             : route.name;
         const isFocused = state.index === index;
-        const icon = route.name === 'Home' ? '🏠' : '🎯';
+        const icon = route.name === 'Home' ? '🏠' : route.name === 'Workouts' ? '🎯' : '🧘';
         return (
-          <TouchableOpacity
+            <TouchableOpacity
             key={route.key}
             accessibilityRole="button"
             accessibilityState={isFocused ? { selected: true } : {}}
@@ -39,24 +40,35 @@ const CustomTabBar = ({ state, descriptors, navigation }) => {
             }}
             style={styles.tabButton}
           >
-            <Text style={[styles.tabLabel, isFocused ? styles.tabLabelActive : styles.tabLabelInactive]}>{label}</Text>
+            <Text style={[
+              styles.tabLabel,
+              isFocused
+                ? { color: isNightMode ? '#fff' : '#000', fontWeight: 'bold' }
+                : { color: isNightMode ? '#fff' : '#000', opacity: 0.8 }
+            ]}>{label}</Text>
             {isFocused && <View style={styles.tabUnderline} />}
-          </TouchableOpacity>
+                    </TouchableOpacity>
         );
       })}
-    </View>
+                  </View>
   );
 };
 
 const styles = StyleSheet.create({
   tabBarContainer: {
+    position: 'absolute',
+    bottom: 25,
+    left: 20,
+    right: 20,
     flexDirection: 'row',
     backgroundColor: '#000',
-    height: 48,
+    height: 64,
     alignItems: 'center',
     justifyContent: 'space-around',
+    borderRadius: 32,
     borderTopWidth: 0,
     elevation: 10,
+    overflow: 'hidden',
   },
   tabButton: {
     flex: 1,
@@ -70,7 +82,8 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   tabLabelActive: {
-    color: '#FFA726',
+    color: '#fff',
+    fontWeight: 'bold',
   },
   tabLabelInactive: {
     color: '#fff',
@@ -85,13 +98,18 @@ const styles = StyleSheet.create({
   },
 });
 
-export default function App() {
-  const [isNightMode, setIsNightMode] = React.useState(false);
+const App = () => {
+  const [isNightMode, setIsNightMode] = useState(false);
+  const [inFocusMode, setInFocusMode] = useState(false);
+
+  useEffect(() => {
+    // ... existing code ...
+  }, []);
 
   return (
     <NavigationContainer>
       <Tab.Navigator
-        tabBar={props => <CustomTabBar {...props} />}
+        tabBar={props => (inFocusMode ? null : <CustomTabBar {...props} isNightMode={isNightMode} />)}
         screenOptions={{
           headerShown: false,
         }}
@@ -104,7 +122,13 @@ export default function App() {
           name="Workouts"
           children={() => <WorkoutScreen isNightMode={isNightMode} setIsNightMode={setIsNightMode} />}
         />
+        <Tab.Screen
+          name="Focus"
+          children={() => <FocusScreen isNightMode={isNightMode} setIsNightMode={setIsNightMode} inFocusMode={inFocusMode} setInFocusMode={setInFocusMode} />}
+        />
       </Tab.Navigator>
     </NavigationContainer>
   );
-}
+};
+
+export default App;

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -14,6 +14,7 @@ import {
   Dimensions,
   SafeAreaView,
   Platform,
+  TextInput,
 } from 'react-native';
 import {
   configure,
@@ -32,38 +33,63 @@ import React from 'react';
 import PlanSection from '../components/PlanSection';
 import PropTypes from 'prop-types';
 import { useIsFocused } from '@react-navigation/native';
+import { Svg, Circle } from 'react-native-svg';
+import LinearGradient from 'react-native-linear-gradient';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
+const SCREEN_HEIGHT = Dimensions.get('window').height;
 
-const App = ({ isNightMode, setIsNightMode }) => {
-  const [didConfig, setDidConfig] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [showWFPUI, setWPFUI] = useState(false);
-  const [week, setWeek] = useState('1');
-  const [bodyZone, setBodyZone] = useState(SMWorkoutLibrary.BodyZone.FullBody);
-  const [difficulty, setDifficulty] = useState(SMWorkoutLibrary.WorkoutDifficulty.LowDifficulty);
-  const [duration, setDuration] = useState(SMWorkoutLibrary.WorkoutDuration.Long);
-  const [language, setLanguage] = useState(SMWorkoutLibrary.Language.English);
-  const [name, setName] = useState('YOUR_PROGRAM_ID');
-  const [modalVisible, setModalVisible] = useState(false);
-  const [summaryMessage, setSummaryMessage] = useState('');
-  const [parsedSummaryData, setParsedSummaryData] = useState<any>(null);
-  const [selectedExercises, setSelectedExercises] = useState<string[]>([]);
-  const [creditScore, setCreditScore] = useState(0);
-  const [performanceAnalysis, setPerformanceAnalysis] = useState<{ strengths: string[], improvements: string[] }>({ strengths: [], improvements: [] });
+const playIconColors = ['#C7B8F9', '#B8F9D7', '#F9B8B8', '#F9EBB8', '#B8E6F9'];
+const formatDuration = (totalSeconds) => {
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+};
+
+const App = ({ isNightMode, setIsNightMode, inFocusMode, setInFocusMode }) => {
+  const [didConfig, setDidConfig] = React.useState(false);
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [showWFPUI, setWPFUI] = React.useState(false);
+  const [week, setWeek] = React.useState('1');
+  const [bodyZone, setBodyZone] = React.useState(SMWorkoutLibrary.BodyZone.FullBody);
+  const [difficulty, setDifficulty] = React.useState(SMWorkoutLibrary.WorkoutDifficulty.LowDifficulty);
+  const [duration, setDuration] = React.useState(SMWorkoutLibrary.WorkoutDuration.Long);
+  const [language, setLanguage] = React.useState(SMWorkoutLibrary.Language.English);
+  const [name, setName] = React.useState('YOUR_PROGRAM_ID');
+  const [modalVisible, setModalVisible] = React.useState(false);
+  const [summaryMessage, setSummaryMessage] = React.useState('');
+  const [parsedSummaryData, setParsedSummaryData] = React.useState<any>(null);
+  const [selectedExercises, setSelectedExercises] = React.useState<{ name: string, duration: number }[]>([]);
+  const [creditScore, setCreditScore] = React.useState(0);
+  const [performanceAnalysis, setPerformanceAnalysis] = React.useState<{ strengths: string[], improvements: string[] }>({ strengths: [], improvements: [] });
+
+  // New state for the exercise selection modal
+  const [exerciseSelectionModalVisible, setExerciseSelectionModalVisible] = React.useState(false);
 
   // New state variables for the assessment info modal
-  const [assessmentInfoModalVisible, setAssessmentInfoModalVisible] = useState(false);
-  const [currentAssessmentExercises, setCurrentAssessmentExercises] = useState<any[]>([]);
-  const [currentAssessmentType, setCurrentAssessmentType] = useState<string | null>(null); // To store the category type
-  const [hasRestarted, setHasRestarted] = useState(false);
+  const [assessmentInfoModalVisible, setAssessmentInfoModalVisible] = React.useState(false);
+  const [currentAssessmentExercises, setCurrentAssessmentExercises] = React.useState<any[]>([]);
+  const [currentAssessmentType, setCurrentAssessmentType] = React.useState<string | null>(null); // To store the category type
+  const [hasRestarted, setHasRestarted] = React.useState(false);
 
-  const [showPlanModal, setShowPlanModal] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<any>(null);
-  const [selectedLevel, setSelectedLevel] = useState('beginner');
-  const [startDisabled, setStartDisabled] = useState(false);
+  const [showPlanModal, setShowPlanModal] = React.useState(false);
+  const [selectedPlan, setSelectedPlan] = React.useState<any>(null);
+  const [selectedLevel, setSelectedLevel] = React.useState('beginner');
+  const [startDisabled, setStartDisabled] = React.useState(false);
+
+  const [retryCountdown, setRetryCountdown] = React.useState<number | null>(null);
+  const [retryNeeded, setRetryNeeded] = React.useState(false);
+  const [retryReason, setRetryReason] = React.useState('');
+  const retryCountdownRef = React.useRef<NodeJS.Timeout | null>(null);
 
   const isFocused = useIsFocused();
+
+  // Define exercises for the Focus Mode assessment
+  const focusAssessmentExercises = [
+    { name: 'Push-ups', reps: 10 },
+    { name: 'Squats', reps: 10 },
+    { name: 'Jumping Jacks', reps: 20 },
+  ];
 
   // Add level durations mapping
   const levelDurations = {
@@ -246,7 +272,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
             performer: 20,
             advanced: 30
           },
-         image: require('../assets/plankM.png')
+          image: require('../assets/plankM.png')
         },
         {
           name: 'Plank',
@@ -600,6 +626,23 @@ const App = ({ isNightMode, setIsNightMode }) => {
     };
   }, [isFocused]);
 
+  useEffect(() => {
+    if (retryCountdown !== null && retryCountdown > 0) {
+      retryCountdownRef.current = setTimeout(() => {
+        setRetryCountdown(retryCountdown - 1);
+      }, 1000);
+    } else if (retryCountdown === 0) {
+      setRetryCountdown(null);
+      setRetryNeeded(false);
+      setIsLoading(true);
+      startFitnessAssessmentWithCleanCheck();
+      setIsLoading(false);
+    }
+    return () => {
+      if (retryCountdownRef.current) clearTimeout(retryCountdownRef.current);
+    };
+  }, [retryCountdown]);
+
   const analyzePerformance = (data: any) => {
     const strengths: string[] = [];
     const improvements: string[] = [];
@@ -638,14 +681,14 @@ const App = ({ isNightMode, setIsNightMode }) => {
     if (!isFocused) return;
     try {
       console.log('Event received:', summary);
-    setSummaryMessage(summary);
-      let parsed: any = null;
+      setSummaryMessage(summary);
+      let parsed = null;
       try {
         parsed = JSON.parse(summary);
-        setParsedSummaryData(parsed);
       } catch (e) {
-        setParsedSummaryData(null);
+        parsed = null;
       }
+      setParsedSummaryData(parsed);
       setModalVisible(true);
     } catch (e) {
       console.error('Error handling event:', e);
@@ -677,16 +720,16 @@ const App = ({ isNightMode, setIsNightMode }) => {
     );
   };
 
-  const handleExerciseSelect = (exercise: string) => {
+  const handleExerciseSelect = (exerciseName: string) => {
     setSelectedExercises(prev => {
-      if (prev.includes(exercise)) {
-        return prev.filter(e => e !== exercise);
+      const index = prev.findIndex(e => e.name === exerciseName);
+      if (index > -1) {
+        // Use filter to create a new array without the selected exercise
+        return prev.filter((_, i) => i !== index);
+      } else {
+        // Add the new exercise with a default duration
+        return [...prev, { name: exerciseName, duration: 30 }];
       }
-      if (prev.length >= 3) {
-        showAlert('Maximum Exercises', 'You can only select up to 3 exercises');
-        return prev;
-      }
-      return [...prev, exercise];
     });
   };
 
@@ -709,6 +752,9 @@ const App = ({ isNightMode, setIsNightMode }) => {
           );
           setSelectedPlan(burnCaloriesPlans[0]); // Show the first plan by default
           setShowPlanModal(true);
+          break;
+        case 'FocusMode':
+          await startFocusModeAssessment();
           break;
         // ... existing code ...
       }
@@ -802,7 +848,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
     }
 
     try {
-      const exercises = selectedExercises.map(exerciseName => {
+      const exercises = selectedExercises.map(({ name: exerciseName }) => {
         let detectorId;
         let scoringType;
         let targetReps: number | null = null;
@@ -1500,340 +1546,323 @@ const App = ({ isNightMode, setIsNightMode }) => {
     }
   };
 
+  // Modified close handler for summary modal
+  const handleSummaryModalClose = () => {
+    setModalVisible(false);
+    // Check if retry is needed
+    if (parsedSummaryData && parsedSummaryData.exercises && parsedSummaryData.exercises.length > 0) {
+      const totalReps = parsedSummaryData.exercises.reduce((acc, ex) => acc + (ex.reps_performed || 0), 0);
+      const cleanReps = parsedSummaryData.exercises.reduce((acc, ex) => acc + (ex.reps_performed_perfect || 0), 0);
+      if (totalReps === 0) {
+        setRetryNeeded(true);
+        setRetryReason('No reps were performed. The assessment will restart.');
+        setRetryCountdown(10);
+      } else if (totalReps !== cleanReps) {
+        setRetryNeeded(true);
+        setRetryReason('Not all reps were clean. The assessment will restart.');
+        setRetryCountdown(10);
+      }
+    }
+  };
+
+  // New function to start a custom assessment from the modal
+  const handleStartFocusAssessment = async () => {
+    if (selectedExercises.length === 0) {
+      showAlert('No Exercises', 'Please select at least one exercise');
+      return;
+    }
+    // First, close the modal
+    setExerciseSelectionModalVisible(false);
+
+    // Re-introducing a longer delay as requested to diagnose the iOS issue
+    setTimeout(async () => {
+      setIsLoading(true);
+      try {
+        const exercises = selectedExercises.map(exercise => {
+          const { name, duration } = exercise;
+          const detectorId = exerciseIdMap[name] || name;
+          const scoring = exerciseScoringMap[name] || { type: SMWorkoutLibrary.ScoringType.Reps, ui: [SMWorkoutLibrary.UIElement.RepsCounter] };
+          const targetReps = 10; // Default target for rep-based exercises
+
+          return new SMWorkoutLibrary.SMAssessmentExercise(
+            detectorId,
+            duration, // Use selected duration as total seconds
+            detectorId,
+            null,
+            scoring.ui,
+            detectorId,
+            '',
+            new SMWorkoutLibrary.SMScoringParams(
+              scoring.type,
+              0.3,
+              scoring.type === SMWorkoutLibrary.ScoringType.Time ? duration : null,
+              scoring.type === SMWorkoutLibrary.ScoringType.Reps ? targetReps : null,
+              null,
+              null
+            ),
+            '',
+            name,
+            scoring.type === SMWorkoutLibrary.ScoringType.Time ? 'Hold the position' : 'Complete clean reps',
+            scoring.type === SMWorkoutLibrary.ScoringType.Time ? 'Time' : 'Reps',
+            scoring.type === SMWorkoutLibrary.ScoringType.Time ? 'seconds held' : 'clean reps'
+          );
+        });
+
+        const workout = new SMWorkoutLibrary.SMWorkout(
+          'custom-focus-assessment',
+          'Custom Focus Assessment',
+          null,
+          null,
+          exercises,
+          null,
+          null,
+          null
+        );
+
+        const result = await startCustomAssessment(workout, null, true, false);
+        await handleEvent(result.summary);
+        await startFitnessAssessmentWithCleanCheck(result.summary);
+
+      } catch (e) {
+        showAlert('Assessment Error', e.message);
+      } finally {
+        setIsLoading(false);
+      }
+    }, 1000); // Increased delay to 1 second
+  };
+
   return (
     <SafeAreaView style={[styles.safeArea, isNightMode && { backgroundColor: '#111' }]}>
-      <ScrollView contentContainerStyle={[styles.mainContainer, { flexGrow: 1 }, isNightMode && { backgroundColor: '#111' }]}>
-      {isLoading && <ActivityIndicator size="large" color="#C4A484" />}
-      
-        {/* Credit Counter at Top Right (restored) */}
-      <View style={styles.creditCounterContainer}>
-        <Text style={styles.creditCounterText}>{creditScore} <Text style={{fontSize: 22, color: '#4CAF50'}}>🪙</Text></Text>
-      </View>
-
-      {/* Header Section - Remove logo and welcome text */}
-      {/* <View style={styles.headerContainer}>
-        <Image 
-            source={require('./assets/logo1.png')} 
-            style={styles.logo}
-            resizeMode="contain"
-          />
-          <Text style={styles.welcomeText}>Welcome to </Text>
-          <View style={{ flexDirection: 'row' }}>
-            <Text style={[styles.titleText, { color: 'white' }]}>Ar</Text>
-            <Text style={[styles.titleText, { color: '#E08714' }]}>thlete</Text>
-            <Text style={[styles.titleText, { color: 'white' }]}> AI Experience</Text>
+      <View style={[styles.mainContainer, { flex: 1, marginTop: 4, paddingBottom: 32, justifyContent: 'flex-start' }, isNightMode && { backgroundColor: '#111' }]}>
+        {isLoading && <ActivityIndicator size="large" color="#C4A484" />}
+        
+        {/* Focus Mode Header Section */}
+        <View style={{marginTop: 4, marginBottom: 8}}>
+          <View style={{flexDirection: 'row', alignItems: 'center', marginBottom: 0}}>
+            <Text style={{fontSize: 28, fontWeight: 'bold', color: isNightMode ? '#fff' : '#111', letterSpacing: 1}}>Focus Mode</Text>
           </View>
-        </View> */}
-
-      {/* Profile Button and Motivational Quote */}
-      <View style={styles.profileSection}>
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-        <TouchableOpacity style={styles.profileButton} onPress={() => showAlert('Profile', 'Profile button pressed!')}>
-          <Text style={styles.profileIcon}>👤</Text>
-        </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => setIsNightMode((prev) => !prev)}
+          <Text style={{fontSize: 15, color: isNightMode ? '#ccc' : '#333', marginBottom: 6, marginTop: -2}}>Only clean reps count</Text>
+          <View style={{alignItems: 'center', marginVertical: 8}}>
+            <Image 
+              source={require('../assets/Focus.png')}
               style={{
-                backgroundColor: isNightMode ? '#222' : '#FFA726',
-                borderRadius: 20,
-                padding: 8,
-                marginLeft: 10,
-                borderWidth: 2,
-                borderColor: '#FFA726',
-                alignItems: 'center',
-                justifyContent: 'center',
+                width: 320,
+                height: 230,
+                resizeMode: 'contain'
               }}
-            >
-              <Text style={{ color: '#fff', fontSize: 18 }}>🌙</Text>
-            </TouchableOpacity>
+            />
           </View>
-          <Text style={[styles.motivationalQuote, isNightMode && { color: '#fff' }]}>
-          "Push, because no one else is going to do it for you."
-        </Text>
-          {/* Removed: Carousel banners below feature buttons */}
-          {/* <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.carouselContainer}
-          contentContainerStyle={styles.carouselContent}
-          pagingEnabled
+        </View>
+        {/* Stats Section */}
+        <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4, marginHorizontal: 2}}>
+          <View>
+            <Text style={{color: isNightMode ? '#fff' : '#111', fontSize: 20, fontWeight: 'bold'}}>Total Reps:</Text>
+            <Text style={{color: isNightMode ? '#fff' : '#111', fontSize: 20, fontWeight: 'bold'}}>Clean Reps.</Text>
+          </View>
+          <View style={{alignItems: 'flex-end'}}>
+            <Text style={{color: isNightMode ? '#fff' : '#111', fontSize: 18, fontWeight: 'bold', marginBottom: 2}}>{parsedSummaryData && parsedSummaryData.exercises ? parsedSummaryData.exercises.reduce((acc, ex) => acc + (ex.reps_performed || 0), 0) : 0}</Text>
+            <Text style={{color: isNightMode ? '#fff' : '#111', fontSize: 18, fontWeight: 'bold'}}>{parsedSummaryData && parsedSummaryData.exercises ? parsedSummaryData.exercises.reduce((acc, ex) => acc + (ex.reps_performed_perfect || 0), 0) : 0}</Text>
+          </View>
+        </View>
+        {/* Retry Countdown UI */}
+        {retryNeeded && retryCountdown !== null && (
+          <Text style={{color: '#E53935', fontSize: 15, fontWeight: 'bold', marginBottom: 2, marginLeft: 2}}>
+            {retryReason} Retry starting in {retryCountdown}s...
+          </Text>
+        )}
+        <Text style={{color: '#E53935', fontSize: 13, fontWeight: 'bold', marginBottom: 2, marginLeft: 2}}>Retry Required</Text>
+        {parsedSummaryData && parsedSummaryData.exercises && parsedSummaryData.exercises.length > 0 ? (
+          (() => {
+            const totalReps = parsedSummaryData.exercises.reduce((acc, ex) => acc + (ex.reps_performed || 0), 0);
+            const cleanReps = parsedSummaryData.exercises.reduce((acc, ex) => acc + (ex.reps_performed_perfect || 0), 0);
+            if (totalReps === cleanReps && totalReps > 0) {
+              return <Text style={{color: '#4CAF50', fontSize: 13, marginLeft: 2, marginBottom: 2}}>Perfect Assessment!!</Text>;
+            } else {
+              return null;
+            }
+          })()
+        ) : null}
+        <View style={{height: 1, backgroundColor: '#E53935', width: '100%', marginBottom: 8}} />
+        {/* Why Focus Mode Card */}
+        <View style={{backgroundColor: isNightMode ? '#222' : '#222', borderRadius: 12, padding: 10, marginBottom: 8, marginHorizontal: 2}}>
+          <Text style={{color: '#fff', fontWeight: 'bold', fontSize: 15, marginBottom: 4}}>Why Focus Mode ?</Text>
+          <Text style={{color: '#aaa', fontSize: 12, lineHeight: 16}}>
+            In Focus Mode, only clean reps count. If you don't match clean reps to total reps, you'll repeat the assessment. Clean reps earn you extra credits.
+          </Text>
+        </View>
+        {/* Start Assessment Button */}
+        <TouchableOpacity
+          style={{backgroundColor: '#E53935', borderRadius: 10, minHeight: 56, justifyContent: 'center', alignItems: 'center', marginBottom: 4, marginHorizontal: 2}}
+          onPress={() => {
+            setSelectedExercises([]); // Reset selection
+            setExerciseSelectionModalVisible(true);
+          }}
         >
-          <View style={[styles.bannerContainer, { width: SCREEN_WIDTH - 40, marginRight: 10 }]}> 
-            <Text style={styles.bannerTitle}>Welcome to Arthlete!</Text>
-            <Text style={styles.bannerSubtitle}>Start your fitness journey today.</Text>
-          </View>
-          <View style={[styles.bannerContainer, { width: SCREEN_WIDTH - 40, marginRight: 10 }]}> 
-            <Text style={styles.bannerTitle}>Earn Rewards</Text>
-            <Text style={styles.bannerSubtitle}>Complete workouts to collect coins.</Text>
-          </View>
-          <View style={[styles.bannerContainer, { width: SCREEN_WIDTH - 40 }]}> 
-            <Text style={styles.bannerTitle}>Join the Community</Text>
-            <Text style={styles.bannerSubtitle}>Connect and compete with friends.</Text>
-          </View>
-          </ScrollView> */}
-      </View>
+          <Text style={{color: '#fff', fontWeight: 'bold', fontSize: 20}}>Start Assessment</Text>
+        </TouchableOpacity>
+        {/* Start/Exit Focus Mode Button */}
+        {!inFocusMode ? (
+          <TouchableOpacity
+            style={{backgroundColor: '#2196F3', borderRadius: 10, minHeight: 56, justifyContent: 'center', alignItems: 'center', marginBottom: 4, marginHorizontal: 2}}
+            onPress={() => setInFocusMode(true)}
+          >
+            <Text style={{color: '#fff', fontWeight: 'bold', fontSize: 20}}>Start Focus Mode</Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity 
+            style={{backgroundColor: isNightMode ? '#333' : '#222', borderRadius: 10, minHeight: 56, justifyContent: 'center', alignItems: 'center', marginBottom: 4, marginHorizontal: 2}}
+            onPress={() => setInFocusMode(false)}
+          >
+            <Text style={{color: '#fff', fontWeight: 'bold', fontSize: 20}}>Exit Focus Mode</Text>
+          </TouchableOpacity>
+        )}
+
+        {/* Credit Counter at Top Right (restored) */}
+        {/* Removed creditCounterContainer, profileSection, dark mode button, and motivational quote */}
+
+        {/* Header Section - Remove logo and welcome text */}
+        {/* <View style={styles.headerContainer}>
+          <Image 
+              source={require('./assets/logo1.png')} 
+              style={styles.logo}
+              resizeMode="contain"
+            />
+            <Text style={styles.welcomeText}>Welcome to </Text>
+            <View style={{ flexDirection: 'row' }}>
+              <Text style={[styles.titleText, { color: 'white' }]}>Ar</Text>
+              <Text style={[styles.titleText, { color: '#E08714' }]}>thlete</Text>
+              <Text style={[styles.titleText, { color: 'white' }]}> AI Experience</Text>
+            </View>
+          </View> */}
+
+        {/* Profile Button and Motivational Quote */}
+      {/* Profile Button and Motivational Quote */}
+      {/* Removed profileSection, profileButton, profileIcon, motivationalQuote, featureButtonRow, featureButton, featureButtonRanks, featureButtonProgress, featureButtonTracker, featureButtonCommunity, featureButtonSelected, featureIcon, featureLabel, carouselContainer, carouselContent, bannerContainer, bannerTitle, bannerSubtitle, plansCarousel, plansCarouselContent, planContainer, planText, burnCaloriesContainer, burnCaloriesHeading, burnCaloriesDescription, fitnessMetricsSection, fitnessMetricsHeader, fitnessMetricsTitle, fitnessMetricsSeeAll, metricsCarousel, metricsCarouselContent, metricCard, scoreCard, hydrationCard, caloriesCard, metricCardTitle, chartPlaceholder, circlesPlaceholder, metricCardValue, barChartContainer, bar, lineGraphContainer, goalLine, userInputLine, progressBarContainer, progressBarFill */}
 
         {/* New Section: Fitness Metrics */}
-        <View style={styles.fitnessMetricsSection}>
-          <View style={styles.fitnessMetricsHeader}>
-            <Text style={[styles.fitnessMetricsTitle, isNightMode && { color: '#fff' }]}>Fitness Metrics</Text>
-          </View>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.metricsCarousel}>
-            <View style={styles.metricsCarouselContent}>
-              {/* Score Card */}
-              <View style={[styles.metricCard, styles.scoreCard, { borderColor: isNightMode ? '#fff' : '#000', borderWidth: 1 }]}>
-                <Text style={styles.metricCardTitle}>Score</Text>
-                {/* Bar chart visualization */}
-                <View style={styles.barChartContainer}>
-                  <View style={[styles.bar, { height: '40%' }]}></View>
-                  <View style={[styles.bar, { height: '60%' }]}></View>
-                  <View style={[styles.bar, { height: '80%' }]}></View>
-                  <View style={[styles.bar, { height: '50%' }]}></View>
-                  <View style={[styles.bar, { height: '70%' }]}></View>
-                  <View style={[styles.bar, { height: '90%' }]}></View>
-                  <View style={[styles.bar, { height: '75%' }]}></View>
-                </View>
-                <Text style={styles.metricCardValue}>88 %</Text>
-              </View>
-              {/* Hydration Card */}
-              <View style={[styles.metricCard, styles.hydrationCard, { borderColor: isNightMode ? '#fff' : '#000', borderWidth: 1 }]}>
-                <Text style={styles.metricCardTitle}>No of Exercises Performed</Text>
-                {/* Line graph visualization with two lines */}
-                <View style={styles.lineGraphContainer}>
-                   {/* Desired Outcome (Goal) Line */}
-                   <View style={styles.goalLine}></View>
-                   {/* User Input Line */}
-                   <View style={styles.userInputLine}></View>
-                </View>
-                <Text style={styles.metricCardValue}>12</Text>
-              </View>
-              {/* Calories Card */}
-              <View style={[styles.metricCard, styles.caloriesCard, { borderColor: isNightMode ? '#fff' : '#000', borderWidth: 1 }]}>
-                <Text style={styles.metricCardTitle}>Clean Reps Percentage</Text>
-                 {/* Horizontal progress bar visualization */}
-                 <View style={styles.progressBarContainer}>
-                   <View style={[styles.progressBarFill, { width: '75%' }]}></View>{/* Example fill percentage */}
-                 </View>
-                <Text style={styles.metricCardValue}>88%</Text>
-              </View>
-              {/* Add more metric cards here */}
-        </View>
-      </ScrollView>
-        </View>
+        {/* Removed fitnessMetricsSection and its content */}
 
         {/* New Section: Burn Calories Fast */}
-        <PlanSection
-          title="Burn Calories Fast"
-          description="Designed to push your limits with intense movements that help melt fat and boost endurance."
-          isNightMode={isNightMode}
-        >
-          <TouchableOpacity
-            style={[styles.planContainer, { width: SCREEN_WIDTH * 0.8, overflow: 'hidden', backgroundColor: 'transparent', borderRadius: 15, padding: 0, justifyContent: 'flex-end' }]} 
-            activeOpacity={0.8}
-            onPress={() => {
-              setSelectedPlan(planData[0]);
-              setShowPlanModal(true);
-            }}
-            disabled={showPlanModal}
-          >
-            <Image source={planData[0].image} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, width: '100%', height: '100%', resizeMode: 'cover', borderRadius: 15 }} />
-            <View style={{ position: 'absolute', left: 16, bottom: 16 }}>
-              <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 22, textShadowColor: 'rgba(0,0,0,0.5)', textShadowOffset: {width: 1, height: 1}, textShadowRadius: 4 }}>Full stack Fitness</Text>
-              <Text style={{ color: '#fff', fontWeight: '600', fontSize: 15, marginTop: 2, textShadowColor: 'rgba(0,0,0,0.4)', textShadowOffset: {width: 1, height: 1}, textShadowRadius: 3 }}>10 Mins</Text>
-            </View>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.planContainer, { width: SCREEN_WIDTH * 0.8, overflow: 'hidden', backgroundColor: 'transparent', borderRadius: 15, padding: 0, justifyContent: 'flex-end' }]} 
-            activeOpacity={0.8}
-            onPress={() => {
-              setSelectedPlan(planData[1]);
-              setShowPlanModal(true);
-            }}
-            disabled={showPlanModal}
-          >
-            <Image source={planData[1].image} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, width: '100%', height: '100%', resizeMode: 'cover', borderRadius: 15 }} />
-            <View style={{ position: 'absolute', left: 16, bottom: 16 }}>
-              <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 22, textShadowColor: 'rgba(0,0,0,0.5)', textShadowOffset: {width: 1, height: 1}, textShadowRadius: 4 }}>Fat Burner</Text>
-              <Text style={{ color: '#fff', fontWeight: '600', fontSize: 15, marginTop: 2, textShadowColor: 'rgba(0,0,0,0.4)', textShadowOffset: {width: 1, height: 1}, textShadowRadius: 3 }}>10 mins</Text>
-            </View>
-          </TouchableOpacity>
-        </PlanSection>
+        {/* Removed Burn Calories Fast PlanSection */}
 
         {/* New Section: Plank & Mobility */}
-        <PlanSection
-          title="Plank & Mobility"
-          description="Improve your core strength and stability with focused plank and mobility exercises."
-          isNightMode={isNightMode}
-        >
-          {/* Plank & Core Stability Plan */}
-          <TouchableOpacity
-            style={[styles.planContainer, { width: SCREEN_WIDTH * 0.8, overflow: 'hidden', backgroundColor: 'transparent', borderRadius: 15, padding: 0, justifyContent: 'flex-end' }]} 
-            activeOpacity={0.8}
-            onPress={() => {
-              setSelectedPlan(planData.find(plan => plan.id === 'plank-core-stability'));
-              setShowPlanModal(true);
-            }}
-            disabled={showPlanModal}
-          >
-            <Image source={require('../assets/plankM.png')} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, width: '100%', height: '100%', resizeMode: 'cover', borderRadius: 15 }} />
-            <View style={{ position: 'absolute', left: 16, bottom: 16 }}>
-              <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 22, textShadowColor: 'rgba(0,0,0,0.5)', textShadowOffset: {width: 1, height: 1}, textShadowRadius: 4 }}>Plank & Core Stability</Text>
-              <Text style={{ color: '#fff', fontWeight: '600', fontSize: 15, marginTop: 2, textShadowColor: 'rgba(0,0,0,0.4)', textShadowOffset: {width: 1, height: 1}, textShadowRadius: 3 }}>4 mins</Text>
-            </View>
-          </TouchableOpacity>
-          {/* Mobility & Stretch Plan */}
-          <TouchableOpacity
-            style={[styles.planContainer, { width: SCREEN_WIDTH * 0.8, overflow: 'hidden', backgroundColor: 'transparent', borderRadius: 15, padding: 0, justifyContent: 'flex-end' }]} 
-            activeOpacity={0.8}
-            onPress={() => {
-              setSelectedPlan(planData.find(plan => plan.id === 'mobility-stretch'));
-              setShowPlanModal(true);
-            }}
-            disabled={showPlanModal}
-          >
-            <Image source={require('../assets/MobileM.png')} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, width: '100%', height: '100%', resizeMode: 'cover', borderRadius: 15 }} />
-            <View style={{ position: 'absolute', left: 16, bottom: 16 }}>
-              <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 22, textShadowColor: 'rgba(0,0,0,0.5)', textShadowOffset: {width: 1, height: 1}, textShadowRadius: 4 }}>Mobility & Stretch</Text>
-              <Text style={{ color: '#fff', fontWeight: '600', fontSize: 15, marginTop: 2, textShadowColor: 'rgba(0,0,0,0.4)', textShadowOffset: {width: 1, height: 1}, textShadowRadius: 3 }}>5 mins</Text>
-            </View>
-          </TouchableOpacity>
-        </PlanSection>
+        {/* Removed Plank & Mobility PlanSection */}
 
         {/* New Section: Cardio */}
-        <PlanSection
-          title="Cardio"
-          description="Heart-pumping workouts to improve cardiovascular health, burn calories, and boost your endurance."
-          isNightMode={isNightMode}
-        >
-          <TouchableOpacity
-  style={[styles.planContainer, { width: SCREEN_WIDTH * 0.8, overflow: 'hidden', backgroundColor: 'transparent', borderRadius: 15, padding: 0, justifyContent: 'flex-end' }]}
-  activeOpacity={0.8}
-  onPress={() => {
-    setSelectedPlan(planData.find(plan => plan.id === 'cardio-basic'));
-    setShowPlanModal(true);
-  }}
-  disabled={showPlanModal}
->
-  <Image
-    source={require('../assets/JumpingJacks.png')}
-    style={{
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      width: '100%',
-      height: '100%',
-      resizeMode: 'cover',
-      borderRadius: 15
-    }}
-  />
-  <View style={{ position: 'absolute', left: 16, bottom: 16 }}>
-    <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 22, textShadowColor: 'rgba(0,0,0,0.5)', textShadowOffset: { width: 1, height: 1 }, textShadowRadius: 4 }}>
-      Cardio Basic
-    </Text>
-    <Text style={{ color: '#fff', fontWeight: '600', fontSize: 15, marginTop: 2, textShadowColor: 'rgba(0,0,0,0.4)', textShadowOffset: { width: 1, height: 1 }, textShadowRadius: 3 }}>
-      8 mins
-    </Text>
-  </View>
-</TouchableOpacity>
-
-                          <TouchableOpacity
-                                style={[styles.planContainer, { width: SCREEN_WIDTH * 0.8, overflow: 'hidden', backgroundColor: 'transparent', borderRadius: 15, padding: 0, justifyContent: 'flex-end' }]}
-                                activeOpacity={0.8}
-                                onPress={() => {
-                                  setSelectedPlan(planData.find(plan => plan.id === 'cardio-hardcore'));
-                                  setShowPlanModal(true);
-                                }}
-                                disabled={showPlanModal}
-                            >
-                              <Image
-                                source={require('../assets/JumpingJacks.png')}
-                                style={{
-                                  position: 'absolute',
-                                  top: 0,
-                                  left: 0,
-                                  right: 0,
-                                  bottom: 0,
-                                  width: '100%',
-                                  height: '100%',
-                                  resizeMode: 'cover',
-                                  borderRadius: 15
-                                }}
-                              />
-                              <View style={{ position: 'absolute', left: 16, bottom: 16 }}>
-                                <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 22, textShadowColor: 'rgba(0,0,0,0.5)', textShadowOffset: { width: 1, height: 1 }, textShadowRadius: 4 }}>
-                                  Cardio Hardcore
-                                </Text>
-                                <Text style={{ color: '#fff', fontWeight: '600', fontSize: 15, marginTop: 2, textShadowColor: 'rgba(0,0,0,0.4)', textShadowOffset: { width: 1, height: 1 }, textShadowRadius: 3 }}>
-                                  12 mins
-                                </Text>
-                              </View>
-        </TouchableOpacity>
-
-        </PlanSection>
+        {/* Removed Cardio PlanSection */}
 
         {/* Move Modals outside ScrollView for iOS compatibility */}
       <Modal
         transparent={true}
         visible={modalVisible}
         animationType="slide"
-        onRequestClose={() => setModalVisible(false)}>
-        <View style={{flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(255, 168, 38, 0.10)'}}>
-          <View style={styles.modalContainer}>
-            <ScrollView contentContainerStyle={{padding: 0}}>
-              {parsedSummaryData ? (
-                <View style={{padding: 0}}>
-                  {/* Header */}
-                  <View style={{backgroundColor: '#FFA726', paddingVertical: 22, paddingHorizontal: 18, alignItems: 'center'}}>
-                    <Text style={{color: '#fff', fontSize: 26, fontWeight: 'bold', letterSpacing: 1}}>Workout Summary</Text>
+        onRequestClose={handleSummaryModalClose}
+      >
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.18)' }}>
+          <LinearGradient
+            colors={["#f5f6fa", "#ffffff"]}
+            start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+            style={{ width: '92%', borderRadius: 24, padding: 24, alignItems: 'center', shadowColor: '#b6c3e0', shadowOpacity: 0.10, shadowRadius: 24, shadowOffset: { width: 0, height: 8 }, elevation: 8, borderWidth: 2, borderColor: '#000' }}
+          >
+            {parsedSummaryData && parsedSummaryData.exercises && parsedSummaryData.exercises.length > 0 ? (() => {
+              // Calculate overall clean reps and total reps
+              const totalCleanReps = parsedSummaryData.exercises.reduce((sum, ex) => sum + (ex.reps_performed_perfect ?? 0), 0);
+              const totalReps = parsedSummaryData.exercises.reduce((sum, ex) => sum + (ex.reps_performed ?? 0), 0);
+              const percent = totalReps > 0 ? Math.round((totalCleanReps / totalReps) * 100) : 0;
+              // Calculate average score
+              const scores = parsedSummaryData.exercises.map(ex => ex.total_score ?? 0);
+              const avgScore = scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0;
+              const radius = 48;
+              const strokeWidth = 10;
+              const circumference = 2 * Math.PI * radius;
+              const progress = circumference * (percent / 100);
+              return (
+                <>
+                  {/* Overall Summary: Clean Percentage Graph and Score in Separate Boxes */}
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', width: '100%', marginBottom: 32, paddingHorizontal: 0, maxWidth: '100%', gap: 16 }}>
+                    {/* Clean Percentage Box */}
+                    <LinearGradient
+                      colors={["#f5f6fa", "#ffffff"]}
+                      start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+                      style={[styles.summaryBox, { flex: 1, borderColor: '#000', borderWidth: 2 }]}
+                    >
+                      <View style={{ width: 110, height: 110, justifyContent: 'center', alignItems: 'center' }}>
+                        <LinearGradient
+                          colors={["#f5f6fa", "#ffffff"]}
+                          start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+                          style={{ position: 'absolute', width: 110, height: 110, borderRadius: 55, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: '#e6eaf3' }}
+                        />
+                        <View style={{ position: 'absolute' }}>
+                          <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#5b7cff', textAlign: 'center' }}>{percent}%</Text>
+                          <Text style={{ fontSize: 14, color: '#7a8ca3', textAlign: 'center', fontWeight: '600' }}>Clean</Text>
+                        </View>
+                        <Svg width={110} height={110} style={{ position: 'absolute', left: 0, top: 0 }}>
+                          <Circle cx={55} cy={55} r={radius} stroke="#e6eaf3" strokeWidth={strokeWidth} fill="none" />
+                          <Circle
+                            cx={55} cy={55} r={radius}
+                            stroke="#5b7cff"
+                            strokeWidth={strokeWidth}
+                            fill="none"
+                            strokeDasharray={`${circumference},${circumference}`}
+                            strokeDashoffset={circumference - progress}
+                            strokeLinecap="round"
+                            rotation="-90"
+                            origin="55,55"
+                          />
+                        </Svg>
+                      </View>
+                    </LinearGradient>
+                    {/* Score Box */}
+                    <LinearGradient
+                      colors={["#f5f6fa", "#ffffff"]}
+                      start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+                      style={[styles.summaryBox, { flex: 1, borderColor: '#000', borderWidth: 2 }]}
+                    >
+                      <Text style={{ color: '#7a8ca3', fontSize: 16, marginBottom: 8, fontWeight: '600', letterSpacing: 0.5 }}>Score</Text>
+                      <Text style={{ color: '#5b7cff', fontSize: 36, fontWeight: 'bold', letterSpacing: 1 }}>{avgScore}</Text>
+                    </LinearGradient>
                   </View>
-                  {/* Exercises */}
-                  <View style={{padding: 20, paddingTop: 20}}>
-                    <Text style={{color: '#FFA726', fontSize: 18, fontWeight: 'bold', marginBottom: 8}}>Exercises</Text>
-                    {parsedSummaryData.exercises && parsedSummaryData.exercises.length > 0 && parsedSummaryData.exercises.map((exercise, index) => (
-                      <View key={index} style={{backgroundColor: '#FFE5B4', borderRadius: 12, padding: 14, marginBottom: 12, shadowColor: '#FFA726', shadowOffset: {width: 0, height: 2}, shadowOpacity: 0.10, shadowRadius: 4, elevation: 2}}>
-                        <Text style={{color: '#FF9800', fontWeight: 'bold', fontSize: 16, marginBottom: 2}}>💪 {exercise.pretty_name || exercise.exercise_id || `Exercise ${index + 1}`}</Text>
-                        <Text style={{color: '#FF9800', fontWeight: 'bold'}}>Score: <Text style={{color: '#333', fontWeight: 'normal'}}>{exercise.total_score !== undefined ? exercise.total_score : 'N/A'}</Text></Text>
-                        <Text style={{color: '#FF9800', fontWeight: 'bold'}}>Reps: <Text style={{color: '#333', fontWeight: 'normal'}}>{exercise.reps_performed !== undefined ? exercise.reps_performed : 0} ({exercise.reps_performed_perfect !== undefined ? exercise.reps_performed_perfect : 0} perfect)</Text></Text>
-                        <Text style={{color: '#FF9800', fontWeight: 'bold'}}>Time: <Text style={{color: '#333', fontWeight: 'normal'}}>{exercise.time_in_position !== undefined ? `${exercise.time_in_position.toFixed(2)}s` : '0.00s'}</Text></Text>
-                        </View>
-                      ))}
-                    </View>
-                  {/* Performance Analysis (optional) */}
-                  {(performanceAnalysis.strengths.length > 0 || performanceAnalysis.improvements.length > 0) && (
-                    <View style={{paddingHorizontal: 20, paddingBottom: 18}}>
-                      <Text style={{color: '#FFA726', fontSize: 18, fontWeight: 'bold', marginBottom: 8}}>Performance Analysis</Text>
-                      {performanceAnalysis.strengths.length > 0 && (
-                        <View style={{marginBottom: 6}}>
-                          <Text style={{color: '#4CAF50', fontWeight: 'bold'}}>✅ Strengths:</Text>
-                          {performanceAnalysis.strengths.map((strength, idx) => (
-                            <Text key={idx} style={{color: '#333', marginLeft: 8}}>{strength}</Text>
-                          ))}
-                        </View>
-                      )}
-                      {performanceAnalysis.improvements.length > 0 && (
-                        <View>
-                          <Text style={{color: '#E53935', fontWeight: 'bold'}}>⚠️ Areas to Improve:</Text>
-                          {performanceAnalysis.improvements.map((improvement, idx) => (
-                            <Text key={idx} style={{color: '#333', marginLeft: 8}}>{improvement}</Text>
-                          ))}
-                        </View>
-                      )}
-                    </View>
-                  )}
-                </View>
-              ) : (
-                <Text style={styles.modalText}>{summaryMessage}</Text>
-              )}
-            </ScrollView>
-            {/* Close Button fixed at the bottom */}
+                  {/* List each exercise with clean/total reps and score (no graph) */}
+                  <ScrollView style={{ width: '100%' }} contentContainerStyle={{ alignItems: 'center', paddingBottom: 24 }}>
+                    {parsedSummaryData.exercises.length > 0 ? (
+                      parsedSummaryData.exercises.map((ex, idx) => {
+                        const cleanReps = ex.reps_performed_perfect ?? 0;
+                        const totalReps = ex.reps_performed ?? 0;
+                        const score = ex.total_score ?? 0;
+                        return (
+                          <View key={idx} style={{ marginBottom: 24, alignItems: 'center', width: '100%' }}>
+                            <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#222', marginBottom: 8 }}>{ex.pretty_name || ex.exercise_id || 'Exercise'}</Text>
+                            <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginBottom: 8 }}>
+                              <View style={{ alignItems: 'center', marginHorizontal: 18 }}>
+                                <Text style={{ color: '#888', fontSize: 14 }}>Clean Reps</Text>
+                                <Text style={{ color: '#222', fontSize: 22, fontWeight: 'bold' }}>{cleanReps}</Text>
+                              </View>
+                              <View style={{ width: 1, height: 36, backgroundColor: '#000', marginHorizontal: 8 }} />
+                              <View style={{ alignItems: 'center', marginHorizontal: 18 }}>
+                                <Text style={{ color: '#888', fontSize: 14 }}>Total Reps</Text>
+                                <Text style={{ color: '#222', fontSize: 22, fontWeight: 'bold' }}>{totalReps}</Text>
+                              </View>
+                            </View>
+                          </View>
+                        );
+                      })
+                    ) : (
+                      <Text style={{ color: '#888', fontSize: 16, marginTop: 16 }}>No exercise data available.</Text>
+                    )}
+                  </ScrollView>
+                </>
+              );
+            })() : (
+              <Text style={[styles.modalText, { color: '#222' }]}>{summaryMessage}</Text>
+            )}
+            {/* Close Button */}
             <TouchableOpacity
-              style={{backgroundColor: '#FF7043', borderBottomLeftRadius: 22, borderBottomRightRadius: 22, paddingVertical: 18, alignItems: 'center'}}
-              onPress={() => setModalVisible(false)}>
-              <Text style={{color: '#fff', fontWeight: 'bold', fontSize: 18}}>Close</Text>
+              style={{ marginTop: 8, backgroundColor: '#f5f5f5', borderRadius: 12, paddingVertical: 14, paddingHorizontal: 36, borderWidth: 1, borderColor: '#eee' }}
+              onPress={handleSummaryModalClose}
+            >
+              <Text style={{ color: '#222', fontWeight: 'bold', fontSize: 18 }}>Close</Text>
             </TouchableOpacity>
-          </View>
+          </LinearGradient>
         </View>
       </Modal>
 
@@ -1874,6 +1903,72 @@ const App = ({ isNightMode, setIsNightMode }) => {
         </View>
       </Modal>
 
+      {/* New Modal for Exercise Selection */}
+      <Modal
+        visible={exerciseSelectionModalVisible}
+        animationType="slide"
+        onRequestClose={() => setExerciseSelectionModalVisible(false)}>
+        <SafeAreaView style={{flex: 1, backgroundColor: isNightMode ? '#111' : '#f2f2f7'}}>
+          {/* Header */}
+          <View style={[styles.selectionModalHeader, { borderBottomColor: isNightMode ? '#333' : '#e5e5ea', backgroundColor: isNightMode ? '#1c1c1e' : '#fff' }]}>
+            <TouchableOpacity onPress={() => setExerciseSelectionModalVisible(false)}>
+              <Text style={styles.selectionModalCloseButton}>←</Text>
+            </TouchableOpacity>
+            <Text style={[styles.selectionModalTitle, { color: isNightMode ? '#fff' : '#000' }]}>Select Exercises</Text>
+            <TouchableOpacity onPress={handleStartFocusAssessment} disabled={selectedExercises.length === 0}>
+              <Text style={[styles.selectionModalStartButton, selectedExercises.length === 0 && styles.disabledButtonText]}>Start</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Exercise List */}
+          <ScrollView style={{flex: 1}}>
+            <View style={[styles.listContainer, { borderColor: isNightMode ? '#333' : '#ccc', backgroundColor: isNightMode ? '#1c1c1e' : '#fff' }]}>
+              {Object.keys(exerciseIdMap).map((exerciseName, index) => {
+                const selectedExercise = selectedExercises.find(e => e.name === exerciseName);
+                const isSelected = !!selectedExercise;
+                const isLastItem = index === Object.keys(exerciseIdMap).length - 1;
+
+                return (
+                  <View key={exerciseName}>
+                    <TouchableOpacity
+                      style={[styles.selectionModalExerciseItem]}
+                      onPress={() => handleExerciseSelect(exerciseName)}
+                      activeOpacity={0.6}
+                    >
+                      <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                        <View style={[styles.checkbox, { borderColor: isNightMode && !isSelected ? '#555' : '#cecece' }, isSelected && styles.checkboxSelected]}>
+                          {isSelected && <Text style={styles.checkmark}>✓</Text>}
+                        </View>
+                        <Text style={[styles.selectionModalExerciseText, { color: isNightMode ? '#fff' : '#000' }]}>{exerciseName}</Text>
+                      </View>
+                      {isSelected && (
+                        <View 
+                          style={{flexDirection: 'row', alignItems: 'center'}}
+                          onStartShouldSetResponder={() => true}
+                        >
+                          <TextInput
+                            style={[styles.durationInput, { color: isNightMode ? '#fff' : '#000', backgroundColor: isNightMode ? '#333' : '#f0f0f0', borderColor: isNightMode ? '#444' : '#e0e0e0' }]}
+                            value={String(selectedExercise.duration)}
+                            onChangeText={(text) => {
+                              const duration = parseInt(text, 10) || 0;
+                              setSelectedExercises(prev => prev.map(ex => ex.name === exerciseName ? { ...ex, duration } : ex));
+                            }}
+                            keyboardType="numeric"
+                            maxLength={3}
+                          />
+                          <Text style={{color: isNightMode ? '#888' : '#666', marginLeft: 8, fontSize: 16}}>sec</Text>
+                        </View>
+                      )}
+                    </TouchableOpacity>
+                    {!isLastItem && <View style={[styles.separator, { backgroundColor: isNightMode ? '#333' : '#e0e0e0' }]} />}
+                  </View>
+                );
+              })}
+            </View>
+          </ScrollView>
+        </SafeAreaView>
+      </Modal>
+
         {/* Add the bottom modal for plan details */}
         <Modal
           visible={showPlanModal}
@@ -1882,7 +1977,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
           onRequestClose={() => setShowPlanModal(false)}
         >
           <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-start' }}>
-            <SafeAreaView style={{ flex: 1, backgroundColor: isNightMode ? '#111' : '#fff' }}>
+            <SafeAreaView style={{ flex: 1, backgroundColor: isNightMode ? '#1a1a1a' : '#f2f2f7' }}>
               {selectedPlan && (
                 <>
                   {/* Close Button */}
@@ -1985,23 +2080,35 @@ const App = ({ isNightMode, setIsNightMode }) => {
                       </View>
                     </View>
                     {/* Exercises List */}
-                    <Text style={{ color: isNightMode ? '#fff' : '#111', fontWeight: 'bold', fontSize: 20, marginBottom: 12 }}>Exercises ({selectedPlan.exercises.length})</Text>
-                    {selectedPlan.exercises && Array.isArray(selectedPlan.exercises) && selectedPlan.exercises.map((ex, idx) => (
-                      ex && ex.name ? (
-                        <View key={idx} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 18 }}>
-                          {/* Placeholder avatar for each exercise */}
-                          <View style={{ width: 60, height: 60, borderRadius: 12, backgroundColor: isNightMode ? '#222' : '#eee', marginRight: 16, justifyContent: 'center', alignItems: 'center' }}>
-                            <Text style={{ color: isNightMode ? '#fff' : '#111', fontSize: 28 }}>{ex.name[0]}</Text>
+                    <Text style={{ color: isNightMode ? '#fff' : '#111', fontWeight: 'bold', fontSize: 20, marginBottom: 12, paddingHorizontal: 24, marginTop: 12 }}>Exercises ({selectedPlan.exercises.length})</Text>
+                    {selectedPlan.exercises && Array.isArray(selectedPlan.exercises) && selectedPlan.exercises.map((ex, idx) => {
+                      if (!ex || !ex.name) return null;
+                      const iconColor = playIconColors[idx % playIconColors.length];
+
+                      return (
+                        <View key={idx} style={[styles.planExerciseItem, { backgroundColor: isNightMode ? '#2c2c2e' : '#fff' }]}>
+                          <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+                            <View style={[styles.planPlayIcon, { backgroundColor: iconColor }]}>
+                              <Text style={styles.planPlayIconText}>▶</Text>
+                            </View>
+                            <View>
+                              <Text style={[styles.planExerciseName, { color: isNightMode ? '#fff' : '#000' }]}>{ex.name}</Text>
+                              <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
+                                <Text style={{ color: iconColor, fontSize: 14, marginRight: 6 }}>🕒</Text>
+                                <Text style={styles.planExerciseDuration}>
+                                  {formatDuration(ex.duration[selectedLevel])}
+                                </Text>
+                              </View>
+                            </View>
                           </View>
-                          <View>
-                            <Text style={{ color: isNightMode ? '#fff' : '#111', fontWeight: 'bold', fontSize: 17 }}>{ex.name}</Text>
-                            <Text style={{ color: isNightMode ? '#aaa' : '#888', fontSize: 15 }}>{ex.detail}</Text>
-                          </View>
+                          <Text style={styles.planExerciseReps}>
+                            Repetition {ex.reps[selectedLevel]}x
+                          </Text>
                         </View>
-                      ) : null
-                    ))}
+                      );
+                    })}
                     {/* Disclaimer below the exercise list */}
-                    <View style={{ marginTop: 18, marginBottom: 8 }}>
+                    <View style={{ marginTop: 18, marginBottom: 8, paddingHorizontal: 24 }}>
                       <Text style={{ color: isNightMode ? '#E53935' : '#B71C1C', fontSize: 14, textAlign: 'center', fontWeight: '600' }}>
                         Please keep your mobile phone on a stable surface (preferably on the ground) and step back and stand in the Frame.
                       </Text>
@@ -2107,7 +2214,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
           </View>
         </Modal>
 
-      </ScrollView>
+      </View>
     </SafeAreaView>
   );
 
@@ -2172,9 +2279,11 @@ const App = ({ isNightMode, setIsNightMode }) => {
         setParsedSummaryData(null);
       }
       setModalVisible(true);
+      return result;
     } catch (e) {
       console.error('Assessment error:', e);
       Alert.alert('Unable to start assessment', e.message);
+      return { summary: '', didFinish: false };
     }
   }
 
@@ -2511,6 +2620,112 @@ const App = ({ isNightMode, setIsNightMode }) => {
       showAlert('Custom assessment error', e.message);
     }
   }
+
+  // Helper to start Fitness assessment and check clean reps
+  async function startFitnessAssessmentWithCleanCheck(summary: string | null = null) {
+    let assessmentSummary = summary;
+
+    if (!assessmentSummary) {
+      let result = await startAssessmentSession(
+        SMWorkoutLibrary.AssessmentTypes.Fitness,
+        true,
+        ''
+      );
+      assessmentSummary = result.summary;
+    }
+
+    // Parse the summary to check clean reps vs total reps
+    let parsed: any = null;
+    try {
+      parsed = typeof assessmentSummary === 'string' ? JSON.parse(assessmentSummary) : assessmentSummary;
+    } catch (e) {
+      parsed = null;
+    }
+    // If any exercise has clean reps != total reps, or total reps is 0, trigger restart after modal
+    let needsRetry = false;
+    let retryReason = '';
+    if (parsed && parsed.exercises && Array.isArray(parsed.exercises)) {
+      for (const ex of parsed.exercises) {
+        if (
+          typeof ex.reps_performed === 'number' &&
+          typeof ex.reps_performed_perfect === 'number'
+        ) {
+          if (ex.reps_performed === 0) {
+            needsRetry = true;
+            retryReason = 'No reps were performed. The assessment will restart.';
+            break;
+          }
+          if (ex.reps_performed !== ex.reps_performed_perfect) {
+            needsRetry = true;
+            retryReason = 'Not all reps were clean. The assessment will restart.';
+            break;
+          }
+        }
+      }
+    }
+    if (needsRetry) {
+      // Do not auto-retry here; handled in modal close now
+      setRetryNeeded(true);
+      setRetryReason(retryReason);
+      setRetryCountdown(10);
+    }
+  }
+
+  // New function to handle the Focus Mode assessment
+  async function startFocusModeAssessment() {
+    try {
+      const exercises = focusAssessmentExercises.map(exerciseInfo => {
+        // This logic is simplified. You would use your existing exercise mapping
+        // to create full SMAssessmentExercise objects.
+        const { name, reps } = exerciseInfo;
+        const detectorId = exerciseIdMap[name] || name;
+        const scoring = exerciseScoringMap[name];
+        
+        return new SMWorkoutLibrary.SMAssessmentExercise(
+          detectorId,
+          35, // totalSeconds per exercise
+          detectorId,
+          null,
+          scoring.ui,
+          detectorId,
+          '',
+          new SMWorkoutLibrary.SMScoringParams(
+            scoring.type,
+            0.3,
+            null,
+            reps,
+            null,
+            null
+          ),
+          '',
+          name,
+          'Complete the exercise',
+          'Reps',
+          'clean reps'
+        );
+      });
+
+      const workout = new SMWorkoutLibrary.SMWorkout(
+        'focus-mode-assessment',
+        'Focus Mode Assessment',
+        null,
+        null,
+        exercises,
+        null,
+        null,
+        null
+      );
+
+      const result = await startCustomAssessment(workout, null, true, false);
+      
+      // Handle the summary and clean check
+      await handleEvent(result.summary);
+      await startFitnessAssessmentWithCleanCheck(result.summary); // Re-use the clean check logic
+
+    } catch (e) {
+      showAlert('Assessment Error', e.message);
+    }
+  }
 };
 
 function showAlert(title, message) {
@@ -2730,12 +2945,12 @@ const styles = StyleSheet.create({
   },
   creditCounterContainer: {
     position: 'absolute',
-    top: '3%',
-    right: '5%',
+    top: 30,
+    right: 20,
     backgroundColor: '#fff', // White background
     borderRadius: 20,
-    paddingHorizontal: '6%',
-    paddingVertical: '2%',
+    paddingHorizontal: 18,
+    paddingVertical: 8,
     zIndex: 2,
     elevation: 6,
     shadowColor: '#FFA726', // Orange shadow
@@ -2833,7 +3048,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     maxWidth: '60%',
     textAlign: 'left',
-    marginBottom: 4,
+    marginBottom: '4%',
   },
   featureButtonRow: {
     flexDirection: 'row',
@@ -2991,7 +3206,7 @@ const styles = StyleSheet.create({
   },
   // New styles for Fitness Metrics section
   fitnessMetricsSection: {
-    marginTop: 4,
+    marginTop: 20,
     marginBottom: 20,
   },
   fitnessMetricsHeader: {
@@ -3020,7 +3235,7 @@ const styles = StyleSheet.create({
   metricCard: {
     borderRadius: 15,
     padding: 15,
-    marginRight: 8,
+    marginRight: 15,
     width: 150, // Fixed width for cards
     height: 180, // Fixed height for cards
     justifyContent: 'space-between',
@@ -3029,8 +3244,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 3,
     elevation: 5,
-    borderWidth: 1,
-    borderColor: '#000',
   },
   scoreCard: {
     backgroundColor: '#FFA726', // Orange background from image
@@ -3131,11 +3344,230 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFA726', // Orange fill color (example)
     borderRadius: 4,
   },
+  // New styles for the exercise selection modal
+  selectionModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+  },
+  selectionModalCloseButton: {
+    fontSize: 28,
+    color: '#007AFF',
+    fontWeight: '400',
+  },
+  selectionModalTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    fontFamily: 'Lexend',
+  },
+  selectionModalStartButton: {
+    fontSize: 18,
+    color: '#007AFF',
+    fontWeight: '600',
+    fontFamily: 'Lexend',
+  },
+  disabledButtonText: {
+    color: '#8e8e93',
+  },
+  selectionModalInstructions: {
+    fontSize: 14,
+    textAlign: 'center',
+    padding: 16,
+    paddingTop: 20,
+    paddingBottom: 12,
+    fontFamily: 'Lexend',
+  },
+  selectionModalExerciseItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 18,
+    paddingHorizontal: 20,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  selectionModalExerciseText: {
+    fontSize: 17,
+    marginLeft: 16,
+    fontFamily: 'Lexend',
+  },
+  checkbox: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#cecece',
+    justifyContent: 'center',
+    alignItems: 'center',
+    fontFamily: 'Lexend',
+  },
+  checkboxSelected: {
+    backgroundColor: '#007AFF',
+    borderColor: '#007AFF',
+  },
+  checkmark: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  durationInput: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    borderWidth: 1,
+    textAlign: 'center',
+    fontSize: 16,
+    backgroundColor: '#f0f0f0',
+    borderColor: '#e0e0e0',
+    fontFamily: 'Lexend',
+  },
+  listContainer: {
+    marginHorizontal: 16,
+    borderRadius: 12,
+    overflow: 'hidden',
+    marginTop: 20,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
+  separator: {
+    height: StyleSheet.hairlineWidth,
+    marginLeft: 58,
+  },
+  planExerciseItem: {
+    borderRadius: 25,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+    marginHorizontal: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    elevation: 3,
+  },
+  planPlayIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  planPlayIconText: {
+    color: 'rgba(255,255,255,0.8)',
+    fontSize: 16,
+    transform: [{ translateX: 1 }],
+  },
+  planExerciseName: {
+    fontSize: 16,
+    fontWeight: '600',
+    fontFamily: 'Lexend',
+  },
+  planExerciseDuration: {
+    fontSize: 14,
+    color: '#888',
+    fontFamily: 'Lexend',
+  },
+  planExerciseReps: {
+    fontSize: 14,
+    color: '#A076F9',
+    fontWeight: '600',
+    fontFamily: 'Lexend',
+  },
+  summaryStatBoxWhite: {
+    flex: 1,
+    marginHorizontal: 4,
+    marginVertical: 8,
+    padding: 14,
+    backgroundColor: '#f7f7fa',
+    borderRadius: 12,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
+  },
+  summaryStatLabelWhite: {
+    color: '#888',
+    fontSize: 14,
+    marginBottom: 4,
+    fontWeight: '500',
+  },
+  summaryStatValueWhite: {
+    color: '#222',
+    fontSize: 22,
+    fontWeight: 'bold',
+  },
+  summaryAnalyticsTitleWhite: {
+    color: '#222',
+    fontSize: 16,
+    marginBottom: 8,
+    fontWeight: 'bold',
+  },
+  summaryAnalyticsLabelWhite: {
+    color: '#888',
+    fontSize: 14,
+  },
+  summaryAnalyticsValueWhite: {
+    color: '#222',
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  summaryAnalyticsSubLabelWhite: {
+    color: '#888',
+    fontSize: 14,
+  },
+  summaryLineChartPlaceholderWhite: {
+    width: '100%',
+    height: 100,
+    backgroundColor: '#f2f2f7',
+    borderRadius: 8,
+    marginVertical: 16,
+  },
+  summaryBox: {
+    backgroundColor: '#f7faff',
+    borderRadius: 22,
+    paddingVertical: 24,
+    paddingHorizontal: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#b6c3e0',
+    shadowOpacity: 0.10,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 4,
+    minWidth: 120,
+    maxWidth: 160,
+    minHeight: 160,
+    borderWidth: 1,
+    borderColor: '#e6eaf3',
+  },
+  scoreBox: {
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    paddingVertical: 32,
+    paddingHorizontal: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 4,
+    minWidth: 90,
+  },
 });
 
 App.propTypes = {
   isNightMode: PropTypes.bool.isRequired,
   setIsNightMode: PropTypes.func.isRequired,
+  inFocusMode: PropTypes.bool.isRequired,
+  setInFocusMode: PropTypes.func.isRequired,
 };
 
 export default App;

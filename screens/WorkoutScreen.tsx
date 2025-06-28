@@ -2966,7 +2966,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
         borderRadius: 16,
         width: '97%',
         alignSelf: 'center',
-        marginBottom: 16,
+        marginBottom: 6, // Reduced from 16
         paddingHorizontal: 10,
       }}>
         <Text style={{ fontSize: 20, color: '#bbb', marginRight: 6 }}>🔍</Text>
@@ -2988,7 +2988,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
       </View>
       {/* Show search results if search is performed */}
       {searchPerformed && (
-        <View style={{ width: '97%', alignSelf: 'center', marginBottom: 16 }}>
+        <View style={{ width: '97%', alignSelf: 'center', marginBottom: 6 }}>
           {searchResults.length === 0 ? (
             <Text style={{ color: '#E53935', fontSize: 18, textAlign: 'center', marginVertical: 12 }}>No search found</Text>
           ) : (
@@ -3024,7 +3024,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
       )}
 
       {/* Custom Workout Card Section */}
-      <View style={{ marginTop: 10, marginBottom: 20 }}>
+      <View style={{ marginTop: 2, marginBottom: 20 }}>
         <View style={{
           backgroundColor: '#e8f5e9',
           borderColor: '#4CAF50',
@@ -3046,7 +3046,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
           <Text style={{ fontSize: 26, fontWeight: 'bold', color: '#222', marginBottom: 8 }}>
             Customise your own{`\n`}workout
           </Text>
-          <Text style={{ fontSize: 16, color: '#333', marginBottom: 20 }}>
+          <Text style={{ fontSize: 16, color: '#333', marginBottom: 8 }}>
             Create a session with exercises and settings tailored by you.
           </Text>
           <TouchableOpacity
@@ -3055,7 +3055,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
               borderRadius: 32,
               paddingVertical: 10,
               alignItems: 'center',
-              marginTop: 6,
+              marginTop: 4, // reduce from 6
             }}
             onPress={async () => {
               setIsLoading(true);
@@ -3074,7 +3074,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
       </View>
 
       {/* Your Plan Section */}
-      <Text style={{ fontSize: 26, fontWeight: 'bold', color: isNightMode ? '#fff' : '#111', marginLeft: 16, marginBottom: 10 }}>Your Custom Plan</Text>
+      <Text style={{ fontSize: 26, fontWeight: 'bold', color: isNightMode ? '#fff' : '#111', marginLeft: 16, marginBottom: 4, marginTop: 0 }}>Your Custom Plan</Text>
       <View style={{
         flexDirection: 'row',
         alignItems: 'center',
@@ -3092,8 +3092,9 @@ const App = ({ isNightMode, setIsNightMode }) => {
         shadowRadius: 6,
         elevation: 2,
         marginBottom: 24,
+        minHeight: 110, // Ensures equal height
       }}>
-        <View style={{ flex: 1 }}>
+        <View style={{ flex: 1, justifyContent: 'center' }}>
           <Text style={{ color: '#1db954', fontSize: 16, marginBottom: 2 }}>{todayName}</Text>
           <Text style={{ fontWeight: 'bold', fontSize: 20, color: '#222', marginBottom: 2 }}>{todayCustomName}</Text>
           {/* List exercises and durations */}
@@ -3128,7 +3129,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
       </View>
 
       {/* Today's Plan Section */}
-      <Text style={{ fontSize: 26, fontWeight: 'bold', color: isNightMode ? '#fff' : '#111', marginLeft: 16, marginBottom: 10 }}>Today's Plan</Text>
+      <Text style={{ fontSize: 26, fontWeight: 'bold', color: isNightMode ? '#fff' : '#111', marginLeft: 16, marginBottom: 10, marginTop: 0 }}>Today's Plan</Text>
       <View style={{
         flexDirection: 'row',
         alignItems: 'center',
@@ -3147,8 +3148,9 @@ const App = ({ isNightMode, setIsNightMode }) => {
         elevation: 2,
         marginBottom: 24,
         marginTop: -1,
+        minHeight: 110, // Ensures equal height
       }}>
-        <View style={{ flex: 1 }}>
+        <View style={{ flex: 1, justifyContent: 'center' }}>
           <Text style={{ color: '#3b82f6', fontSize: 16, marginBottom: 2 }}>Day 1</Text>
           <Text style={{ fontWeight: 'bold', fontSize: 20, color: '#222', marginBottom: 2 }}>Full Body Strength</Text>
           <Text style={{ color: '#789', fontSize: 15 }}>45 min · 5 exercises</Text>
