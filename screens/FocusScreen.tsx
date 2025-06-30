@@ -33,7 +33,7 @@ import React from 'react';
 import PlanSection from '../components/PlanSection';
 import PropTypes from 'prop-types';
 import { useIsFocused } from '@react-navigation/native';
-import { Svg, Circle } from 'react-native-svg';
+import { Svg, Circle, Path } from 'react-native-svg';
 import LinearGradient from 'react-native-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { addPerformedExercises } from '../utils/exerciseTracker';
@@ -56,6 +56,41 @@ function formatExerciseName(name) {
     .replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2')
     .replace(/\s+/g, ' ')
     .trim();
+}
+
+// ArcProgress component for semi-circular progress bar
+function ArcProgress({ progress, max, size = 80, strokeWidth = 10, color = '#4CAF50', bgColor = '#eee' }) {
+  const radius = (size - strokeWidth) / 2;
+  const center = size / 2;
+  const angle = Math.PI * (progress / max);
+  const x = center + radius * Math.cos(Math.PI - angle);
+  const y = center - radius * Math.sin(Math.PI - angle);
+  const largeArcFlag = progress > max / 2 ? 1 : 0;
+  const arcPath = `M ${center - radius},${center} A ${radius},${radius} 0 ${largeArcFlag} 1 ${x},${y}`;
+  return (
+    <View style={{ width: size, height: size / 2, alignItems: 'center', justifyContent: 'center' }}>
+      <Svg width={size} height={size / 2}>
+        {/* Background arc */}
+        <Path
+          d={`M ${center - radius},${center} A ${radius},${radius} 0 1 1 ${center + radius},${center}`}
+          stroke={bgColor}
+          strokeWidth={strokeWidth}
+          fill="none"
+        />
+        {/* Foreground arc */}
+        <Path
+          d={arcPath}
+          stroke={color}
+          strokeWidth={strokeWidth}
+          fill="none"
+        />
+      </Svg>
+      {/* Center number */}
+      <View style={{ position: 'absolute', top: size / 4 - 18, left: 0, width: size, alignItems: 'center', justifyContent: 'center' }}>
+        <Text style={{ fontSize: 28, fontWeight: 'bold', color }}>{progress.toString().padStart(2, '0')}</Text>
+      </View>
+    </View>
+  );
 }
 
 const App = ({ isNightMode, setIsNightMode, inFocusMode, setInFocusMode }) => {
@@ -2586,14 +2621,23 @@ const App = ({ isNightMode, setIsNightMode, inFocusMode, setInFocusMode }) => {
                     {selectedPlan.exercises && Array.isArray(selectedPlan.exercises) && selectedPlan.exercises.map((ex, idx) => {
                       if (!ex || !ex.name) return null;
                       const iconColor = playIconColors[idx % playIconColors.length];
-
+                      // For now, use a static progress value (0). Replace with real progress if available.
+                      const scoring = exerciseScoringMap[ex.name] || { type: SMWorkoutLibrary.ScoringType.Reps };
+                      let progress = 3, max = 10;
+                      if (scoring.type === SMWorkoutLibrary.ScoringType.Time) {
+                        progress = 10;
+                        max = ex.duration[selectedLevel] || 30;
+                      } else {
+                        progress = 3;
+                        max = ex.reps[selectedLevel] || 10;
+                      }
                       return (
-                        <View key={idx} style={[styles.planExerciseItem, { backgroundColor: isNightMode ? '#2c2c2e' : '#fff' }]}>
+                        <View key={idx} style={[styles.planExerciseItem, { backgroundColor: isNightMode ? '#2c2c2e' : '#fff' }]}> 
                           <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-                            <View style={[styles.planPlayIcon, { backgroundColor: iconColor }]}>
+                            <View style={[styles.planPlayIcon, { backgroundColor: iconColor }]}> 
                               <Text style={styles.planPlayIconText}>▶</Text>
-                          </View>
-                          <View>
+                            </View>
+                            <View>
                               <Text style={[styles.planExerciseName, { color: isNightMode ? '#fff' : '#000' }]}>{ex.name}</Text>
                               <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
                                 <Text style={{ color: iconColor, fontSize: 14, marginRight: 6 }}>🕒</Text>
@@ -2601,7 +2645,14 @@ const App = ({ isNightMode, setIsNightMode, inFocusMode, setInFocusMode }) => {
                                   {formatDuration(ex.duration[selectedLevel])}
                                 </Text>
                           </View>
-                        </View>
+                            </View>
+                          </View>
+                          {/* Arc progress bar above progress bar and reps/time */}
+                          <View style={{ alignItems: 'center', marginBottom: 4 }}>
+                            <ArcProgress progress={progress} max={max} />
+                          </View>
+                          <View style={styles.progressBarContainer}>
+                            <View style={[styles.progressBarFill, { width: `${0}%` }]} />
                           </View>
                           <Text style={styles.planExerciseReps}>
                             Repetition {ex.reps[selectedLevel]}x
@@ -3451,29 +3502,38 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   creditCounterContainer: {
-    position: 'absolute',
-    top: 30,
-    right: 20,
-    backgroundColor: '#fff', // White background
-    borderRadius: 20,
-    paddingHorizontal: 18,
-    paddingVertical: 8,
-    zIndex: 2,
-    elevation: 6,
-    shadowColor: '#FFA726', // Orange shadow
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.18,
-    shadowRadius: 6,
-    borderWidth: 2,
-    borderColor: '#FFA726', // Orange border
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    minWidth: 48,
+    minHeight: 36,
+    // If you want it floating, uncomment the next lines:
+    // position: 'absolute',
+    // top: Platform.OS === 'ios' ? 54 : 30, // More space for notched devices
+    // right: 20,
+    // zIndex: 2,
+    // elevation: 6,
+    // shadowColor: '#FFA726',
+    // shadowOffset: { width: 0, height: 2 },
+    // shadowOpacity: 0.18,
+    // shadowRadius: 6,
+    // borderWidth: 2,
+    // borderColor: '#FFA726',
+  },
+  coinIcon: {
+    width: 24,
+    height: 24,
+    resizeMode: 'contain',
+    marginRight: 6,
   },
   creditCounterText: {
-    color: '#FF9800', // Orange text
+    color: '#FF9800',
     fontSize: 18,
     fontWeight: 'bold',
-    marginLeft: 6,
   },
   analysisContainer: {
     backgroundColor: '#FFE5B4', // Light orange
