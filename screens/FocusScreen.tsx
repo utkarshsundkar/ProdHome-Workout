@@ -35,6 +35,8 @@ import PropTypes from 'prop-types';
 import { useIsFocused } from '@react-navigation/native';
 import { Svg, Circle } from 'react-native-svg';
 import LinearGradient from 'react-native-linear-gradient';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { addPerformedExercises } from '../utils/exerciseTracker';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
@@ -45,6 +47,16 @@ const formatDuration = (totalSeconds) => {
     const seconds = totalSeconds % 60;
     return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 };
+
+// Add this helper function near the top, after imports:
+function formatExerciseName(name) {
+  return name
+    .replace(/[_-]/g, ' ')
+    .replace(/([a-z])([A-Z])/g, '$1 $2')
+    .replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
 
 const App = ({ isNightMode, setIsNightMode, inFocusMode, setInFocusMode }) => {
   const [didConfig, setDidConfig] = React.useState(false);
@@ -77,12 +89,13 @@ const App = ({ isNightMode, setIsNightMode, inFocusMode, setInFocusMode }) => {
   const [selectedLevel, setSelectedLevel] = React.useState('beginner');
   const [startDisabled, setStartDisabled] = React.useState(false);
 
-  const [retryCountdown, setRetryCountdown] = React.useState<number | null>(null);
-  const [retryNeeded, setRetryNeeded] = React.useState(false);
   const [retryReason, setRetryReason] = React.useState('');
-  const retryCountdownRef = React.useRef<NodeJS.Timeout | null>(null);
+  const exercisesToRetryRef = React.useRef<any[]>([]);
 
   const isFocused = useIsFocused();
+
+  const [todayCleanReps, setTodayCleanReps] = useState(0);
+  const [todayCleanTime, setTodayCleanTime] = useState(0);
 
   // Define exercises for the Focus Mode assessment
   const focusAssessmentExercises = [
@@ -287,6 +300,104 @@ const App = ({ isNightMode, setIsNightMode, inFocusMode, setInFocusMode }) => {
             advanced: 30
           },
           image: require('../assets/plankM.png')
+        },
+        {
+          name: 'Shoulder Taps Plank',
+          duration: {
+            beginner: 30,
+            performer: 60,
+            advanced: 120
+          },
+          reps: {
+            beginner: 10,
+            performer: 20,
+            advanced: 30
+          },
+          image: require('../assets/plankM.png')
+        },
+        {
+          name: 'Shoulder Press',
+          duration: {
+            beginner: 30,
+            performer: 60,
+            advanced: 120
+          },
+          reps: {
+            beginner: 10,
+            performer: 20,
+            advanced: 30
+          },
+          image: require('../assets/plankM.png')
+        },
+        {
+          name: 'Overhead Squat',
+          duration: {
+            beginner: 30,
+            performer: 60,
+            advanced: 120
+          },
+          reps: {
+            beginner: 10,
+            performer: 20,
+            advanced: 30
+          },
+          image: require('../assets/plankM.png')
+        },
+        {
+          name: 'Reverse Sit to Table Top',
+          duration: {
+            beginner: 30,
+            performer: 60,
+            advanced: 120
+          },
+          reps: {
+            beginner: 10,
+            performer: 20,
+            advanced: 30
+          },
+          image: require('../assets/plankM.png')
+        },
+        {
+          name: 'Glute Bridge',
+          duration: {
+            beginner: 30,
+            performer: 60,
+            advanced: 120
+          },
+          reps: {
+            beginner: 10,
+            performer: 20,
+            advanced: 30
+          },
+          image: require('../assets/plankM.png')
+        },
+        {
+          name: 'Oblique Crunches',
+          duration: {
+            beginner: 30,
+            performer: 60,
+            advanced: 120
+          },
+          reps: {
+            beginner: 10,
+            performer: 20,
+            advanced: 30
+          },
+          image: require('../assets/plankM.png')
+        },
+        {
+          name: 'Crunches',
+          duration: {
+            beginner: 30,
+            performer: 60,
+            advanced: 120
+          },
+          reps: {
+            beginner: 10,
+            performer: 20,
+            advanced: 30
+          },
+          image: require('../assets/plankM.png')
         }
       ]
     },
@@ -327,7 +438,7 @@ const App = ({ isNightMode, setIsNightMode, inFocusMode, setInFocusMode }) => {
           image: require('../assets/MobileM.png')
         },
         {
-          name: 'Side bend',
+          name: 'Side Bend Left',
           duration: {
             beginner: 30,
             performer: 60,
@@ -341,7 +452,35 @@ const App = ({ isNightMode, setIsNightMode, inFocusMode, setInFocusMode }) => {
           image: require('../assets/MobileM.png')
         },
         {
-          name: 'Standing knee raises',
+          name: 'Side Bend Right',
+          duration: {
+            beginner: 30,
+            performer: 60,
+            advanced: 120
+          },
+          reps: {
+            beginner: 10,
+            performer: 20,
+            advanced: 30
+          },
+          image: require('../assets/MobileM.png')
+        },
+        {
+          name: 'Standing Knee Raise Left',
+          duration: {
+            beginner: 30,
+            performer: 60,
+            advanced: 120
+          },
+          reps: {
+            beginner: 10,
+            performer: 20,
+            advanced: 30
+          },
+          image: require('../assets/MobileM.png')
+        },
+        {
+          name: 'Standing Knee Raise Right',
           duration: {
             beginner: 30,
             performer: 60,
@@ -356,6 +495,34 @@ const App = ({ isNightMode, setIsNightMode, inFocusMode, setInFocusMode }) => {
         },
         {
           name: 'Jefferson curl',
+          duration: {
+            beginner: 30,
+            performer: 60,
+            advanced: 120
+          },
+          reps: {
+            beginner: 10,
+            performer: 20,
+            advanced: 30
+          },
+          image: require('../assets/MobileM.png')
+        },
+        {
+          name: 'Side Lunge Right',
+          duration: {
+            beginner: 30,
+            performer: 60,
+            advanced: 120
+          },
+          reps: {
+            beginner: 10,
+            performer: 20,
+            advanced: 30
+          },
+          image: require('../assets/MobileM.png')
+        },
+        {
+          name: 'Side Lunge Left',
           duration: {
             beginner: 30,
             performer: 60,
@@ -542,20 +709,7 @@ const App = ({ isNightMode, setIsNightMode, inFocusMode, setInFocusMode }) => {
           },
           image: require('../assets/JumpingJacks.png')
         },
-        {
-          name: 'Standing Knee Raise',
-          duration: {
-            beginner: 30,
-            performer: 60,
-            advanced: 120
-          },
-          reps: {
-            beginner: 20,
-            performer: 30,
-            advanced: 40
-          },
-          image: require('../assets/JumpingJacks.png')
-        }
+       
       ]
     },
   ];
@@ -568,18 +722,45 @@ const App = ({ isNightMode, setIsNightMode, inFocusMode, setInFocusMode }) => {
     'High Plank': 'PlankHighStatic',
     'Side Plank': 'PlankSideLowStatic',
     'Tuck Hold': 'TuckHold',
-    'Hamstring mobility': 'StandingAlternateToeTouch',
-    'Standing hamstring mobility': 'StandingAlternateToeTouch',
-    'Side bend': 'StandingSideBendRight',
+    'Hamstring mobility': 'HamstringMobility',
+    'Standing hamstring mobility': 'StandingHamstringMobility',
+    'Side Bend Left': 'StandingSideBendLeft',
+    'Side Bend Right': 'StandingSideBendRight',
     'Standing knee raises': 'HighKnees',
+    'Standing Knee Raise Left': 'StandingKneeRaiseLeft',
+    'Standing Knee Raise Right': 'StandingKneeRaiseRight',
     'Jefferson curl': 'JeffersonCurlRight',
     'Jumping Jacks': 'JumpingJacks',
     'High Knees': 'HighKnees',
     'Ski Jumps': 'SkiJumps',
     'Skater Hops': 'SkaterHops',
-    'Lunge': 'Lunge',
+    'Lunge': 'LungeFront',
     'Jumps': 'Jumps',
-    'Standing Knee Raise': 'StandingKneeRaiseLeft',
+    // Add more mappings for common variations
+    'Pushup': 'PushupRegular',
+    'PushupRegular': 'PushupRegular',
+    'Squat': 'SquatRegular',
+    'SquatRegular': 'SquatRegular',
+    'PlankHighStatic': 'PlankHighStatic',
+    'PlankSideLowStatic': 'PlankSideLowStatic',
+    'TuckHold': 'TuckHold',
+    'StandingAlternateToeTouch': 'StandingAlternateToeTouch',
+    'StandingSideBendRight': 'StandingSideBendRight',
+    'HighKnees': 'HighKnees',
+    'JeffersonCurlRight': 'JeffersonCurlRight',
+    'JumpingJacks': 'JumpingJacks',
+    'SkiJumps': 'SkiJumps',
+    'SkaterHops': 'SkaterHops',
+    'StandingKneeRaiseLeft': 'StandingKneeRaiseLeft',
+    'Side Lunge Right': 'LungeSideRight',
+    'Side Lunge Left': 'LungeSideLeft',
+    'Shoulder Taps Plank': 'PlankHighShoulderTaps',
+    'Shoulder Press': 'ShouldersPress',
+    'Overhead Squat': 'SquatRegularOverheadStatic',
+    'Reverse Sit to Table Top': 'ReverseSitToTableTop',
+    'Glute Bridge': 'GlutesBridge',
+    'Oblique Crunches': 'StandingObliqueCrunches',
+    'Crunches': 'Crunches',
   };
 
   // Map display names to scoring type and UI
@@ -590,19 +771,50 @@ const App = ({ isNightMode, setIsNightMode, inFocusMode, setInFocusMode }) => {
     'High Plank': { type: SMWorkoutLibrary.ScoringType.Time, ui: [SMWorkoutLibrary.UIElement.Timer] },
     'Side Plank': { type: SMWorkoutLibrary.ScoringType.Time, ui: [SMWorkoutLibrary.UIElement.Timer] },
     'Tuck Hold': { type: SMWorkoutLibrary.ScoringType.Time, ui: [SMWorkoutLibrary.UIElement.Timer] },
-    'Hamstring mobility': { type: SMWorkoutLibrary.ScoringType.Reps, ui: [SMWorkoutLibrary.UIElement.RepsCounter, SMWorkoutLibrary.UIElement.Timer] },
-    'Standing hamstring mobility': { type: SMWorkoutLibrary.ScoringType.Reps, ui: [SMWorkoutLibrary.UIElement.RepsCounter, SMWorkoutLibrary.UIElement.Timer] },
-    'Side bend': { type: SMWorkoutLibrary.ScoringType.Time, ui: [SMWorkoutLibrary.UIElement.Timer] },
+    'Hamstring mobility': { type: SMWorkoutLibrary.ScoringType.Time, ui: [SMWorkoutLibrary.UIElement.RepsCounter, SMWorkoutLibrary.UIElement.Timer] },
+    'Standing hamstring mobility': { type: SMWorkoutLibrary.ScoringType.Time, ui: [SMWorkoutLibrary.UIElement.RepsCounter, SMWorkoutLibrary.UIElement.Timer] },
+    'Side Bend Left': { type: SMWorkoutLibrary.ScoringType.Time, ui: [SMWorkoutLibrary.UIElement.Timer] },
+    'Side Bend Right': { type: SMWorkoutLibrary.ScoringType.Time, ui: [SMWorkoutLibrary.UIElement.Timer] },
     'Standing knee raises': { type: SMWorkoutLibrary.ScoringType.Reps, ui: [SMWorkoutLibrary.UIElement.RepsCounter, SMWorkoutLibrary.UIElement.Timer] },
+    'Standing Knee Raise Left': { type: SMWorkoutLibrary.ScoringType.Time, ui: [SMWorkoutLibrary.UIElement.Timer] },
+    'Standing Knee Raise Right': { type: SMWorkoutLibrary.ScoringType.Time, ui: [SMWorkoutLibrary.UIElement.Timer] },
     'Jefferson curl': { type: SMWorkoutLibrary.ScoringType.Time, ui: [SMWorkoutLibrary.UIElement.Timer] },
     'Jumping Jacks': { type: SMWorkoutLibrary.ScoringType.Reps, ui: [SMWorkoutLibrary.UIElement.RepsCounter, SMWorkoutLibrary.UIElement.Timer] },
     'High Knees': { type: SMWorkoutLibrary.ScoringType.Reps, ui: [SMWorkoutLibrary.UIElement.RepsCounter, SMWorkoutLibrary.UIElement.Timer] },
     'Ski Jumps': { type: SMWorkoutLibrary.ScoringType.Reps, ui: [SMWorkoutLibrary.UIElement.RepsCounter, SMWorkoutLibrary.UIElement.Timer] },
     'Skater Hops': { type: SMWorkoutLibrary.ScoringType.Reps, ui: [SMWorkoutLibrary.UIElement.RepsCounter, SMWorkoutLibrary.UIElement.Timer] },
     'Lunge': { type: SMWorkoutLibrary.ScoringType.Reps, ui: [SMWorkoutLibrary.UIElement.RepsCounter, SMWorkoutLibrary.UIElement.Timer] },
+    'Side Lunge Right': { type: SMWorkoutLibrary.ScoringType.Reps, ui: [SMWorkoutLibrary.UIElement.RepsCounter, SMWorkoutLibrary.UIElement.Timer] },
+    'Side Lunge Left': { type: SMWorkoutLibrary.ScoringType.Reps, ui: [SMWorkoutLibrary.UIElement.RepsCounter, SMWorkoutLibrary.UIElement.Timer] },
     'Jumps': { type: SMWorkoutLibrary.ScoringType.Reps, ui: [SMWorkoutLibrary.UIElement.RepsCounter, SMWorkoutLibrary.UIElement.Timer] },
-    'Standing Knee Raise': { type: SMWorkoutLibrary.ScoringType.Time, ui: [SMWorkoutLibrary.UIElement.Timer] },
+    // Add more mappings for common variations
+    'Pushup': { type: SMWorkoutLibrary.ScoringType.Reps, ui: [SMWorkoutLibrary.UIElement.RepsCounter, SMWorkoutLibrary.UIElement.Timer] },
+    'PushupRegular': { type: SMWorkoutLibrary.ScoringType.Reps, ui: [SMWorkoutLibrary.UIElement.RepsCounter, SMWorkoutLibrary.UIElement.Timer] },
+    'Squat': { type: SMWorkoutLibrary.ScoringType.Reps, ui: [SMWorkoutLibrary.UIElement.RepsCounter, SMWorkoutLibrary.UIElement.Timer] },
+    'SquatRegular': { type: SMWorkoutLibrary.ScoringType.Reps, ui: [SMWorkoutLibrary.UIElement.RepsCounter, SMWorkoutLibrary.UIElement.Timer] },
+    'PlankHighStatic': { type: SMWorkoutLibrary.ScoringType.Time, ui: [SMWorkoutLibrary.UIElement.Timer] },
+    'PlankSideLowStatic': { type: SMWorkoutLibrary.ScoringType.Time, ui: [SMWorkoutLibrary.UIElement.Timer] },
+    'TuckHold': { type: SMWorkoutLibrary.ScoringType.Time, ui: [SMWorkoutLibrary.UIElement.Timer] },
+    'StandingAlternateToeTouch': { type: SMWorkoutLibrary.ScoringType.Reps, ui: [SMWorkoutLibrary.UIElement.RepsCounter, SMWorkoutLibrary.UIElement.Timer] },
+    'StandingSideBendRight': { type: SMWorkoutLibrary.ScoringType.Time, ui: [SMWorkoutLibrary.UIElement.Timer] },
+    'HighKnees': { type: SMWorkoutLibrary.ScoringType.Reps, ui: [SMWorkoutLibrary.UIElement.RepsCounter, SMWorkoutLibrary.UIElement.Timer] },
+    'JeffersonCurlRight': { type: SMWorkoutLibrary.ScoringType.Time, ui: [SMWorkoutLibrary.UIElement.Timer] },
+    'JumpingJacks': { type: SMWorkoutLibrary.ScoringType.Reps, ui: [SMWorkoutLibrary.UIElement.RepsCounter, SMWorkoutLibrary.UIElement.Timer] },
+    'SkiJumps': { type: SMWorkoutLibrary.ScoringType.Reps, ui: [SMWorkoutLibrary.UIElement.RepsCounter, SMWorkoutLibrary.UIElement.Timer] },
+    'SkaterHops': { type: SMWorkoutLibrary.ScoringType.Reps, ui: [SMWorkoutLibrary.UIElement.RepsCounter, SMWorkoutLibrary.UIElement.Timer] },
+    'StandingKneeRaiseLeft': { type: SMWorkoutLibrary.ScoringType.Time, ui: [SMWorkoutLibrary.UIElement.Timer] },
+    'LungeSide': { type: SMWorkoutLibrary.ScoringType.Reps, ui: [SMWorkoutLibrary.UIElement.RepsCounter, SMWorkoutLibrary.UIElement.Timer] },
+    'Shoulder Taps Plank': { type: SMWorkoutLibrary.ScoringType.Reps, ui: [SMWorkoutLibrary.UIElement.RepsCounter, SMWorkoutLibrary.UIElement.Timer] },
+    'Shoulder Press': { type: SMWorkoutLibrary.ScoringType.Reps, ui: [SMWorkoutLibrary.UIElement.RepsCounter, SMWorkoutLibrary.UIElement.Timer] },
+    'Overhead Squat': { type: SMWorkoutLibrary.ScoringType.Time, ui: [SMWorkoutLibrary.UIElement.Timer] },
+    'Reverse Sit to Table Top': { type: SMWorkoutLibrary.ScoringType.Reps, ui: [SMWorkoutLibrary.UIElement.RepsCounter, SMWorkoutLibrary.UIElement.Timer] },
+    'Glute Bridge': { type: SMWorkoutLibrary.ScoringType.Reps, ui: [SMWorkoutLibrary.UIElement.RepsCounter, SMWorkoutLibrary.UIElement.Timer] },
+    'Oblique Crunches': { type: SMWorkoutLibrary.ScoringType.Reps, ui: [SMWorkoutLibrary.UIElement.RepsCounter, SMWorkoutLibrary.UIElement.Timer] },
+    'Crunches': { type: SMWorkoutLibrary.ScoringType.Reps, ui: [SMWorkoutLibrary.UIElement.RepsCounter, SMWorkoutLibrary.UIElement.Timer] },
   };
+
+  // ... inside App component, before useEffect and any use of getTodayKey ...
+  const getTodayKey = () => `focusScore-${new Date().toISOString().slice(0, 10)}`;
 
   useEffect(() => {
     configureSMKitUI();
@@ -626,22 +838,22 @@ const App = ({ isNightMode, setIsNightMode, inFocusMode, setInFocusMode }) => {
     };
   }, [isFocused]);
 
+  // Load today's score on mount
   useEffect(() => {
-    if (retryCountdown !== null && retryCountdown > 0) {
-      retryCountdownRef.current = setTimeout(() => {
-        setRetryCountdown(retryCountdown - 1);
-      }, 1000);
-    } else if (retryCountdown === 0) {
-      setRetryCountdown(null);
-      setRetryNeeded(false);
-      setIsLoading(true);
-      startFitnessAssessmentWithCleanCheck();
-      setIsLoading(false);
-    }
-    return () => {
-      if (retryCountdownRef.current) clearTimeout(retryCountdownRef.current);
+    const loadTodayScore = async () => {
+      try {
+        const stored = await AsyncStorage.getItem(getTodayKey());
+        if (stored) {
+          const { cleanReps, cleanTime } = JSON.parse(stored);
+          setTodayCleanReps(cleanReps);
+          setTodayCleanTime(cleanTime);
+        }
+      } catch (e) {
+        // Ignore errors
+      }
     };
-  }, [retryCountdown]);
+    loadTodayScore();
+  }, []);
 
   const analyzePerformance = (data: any) => {
     const strengths: string[] = [];
@@ -678,18 +890,51 @@ const App = ({ isNightMode, setIsNightMode, inFocusMode, setInFocusMode }) => {
   };
 
   const handleEvent = async (summary) => {
+    console.log('handleEvent called for summary:', summary);
     if (!isFocused) return;
     try {
-      console.log('Event received:', summary);
-      setSummaryMessage(summary);
-      let parsed = null;
-      try {
-        parsed = JSON.parse(summary);
-      } catch (e) {
-        parsed = null;
-      }
-      setParsedSummaryData(parsed);
-      setModalVisible(true);
+      setModalVisible(false);
+      setParsedSummaryData(null);
+      setTimeout(() => {
+        setSummaryMessage(summary);
+        let parsed: { exercises?: any[] } | null = null;
+        try {
+          parsed = JSON.parse(summary);
+        } catch (e) {
+          parsed = null;
+        }
+        setParsedSummaryData(parsed);
+        // Track only exercises with at least one rep/time
+        if (parsed && parsed.exercises && Array.isArray(parsed.exercises)) {
+          const performed = parsed.exercises.filter(ex => {
+            const exerciseName = ex.exercise_info?.pretty_name || ex.exercise_info?.exercise_id || ex.pretty_name || ex.exercise_id || ex.name;
+            const scoring = exerciseScoringMap[exerciseName] || { type: SMWorkoutLibrary.ScoringType.Reps };
+            if (scoring.type === SMWorkoutLibrary.ScoringType.Time) {
+              const total = ex.time_in_position ?? ex.exercise_info?.time_in_position ?? 0;
+              return total > 0;
+            } else {
+              const reps = ex.reps_performed ?? ex.exercise_info?.reps_performed ?? 0;
+              return reps > 0;
+            }
+          }).map(ex =>
+            ex.exercise_info?.pretty_name ||
+            ex.exercise_info?.exercise_id ||
+            ex.pretty_name ||
+            ex.exercise_id ||
+            ex.name
+          );
+          if (performed.length > 0) addPerformedExercises(performed);
+          if (performed.length > 0) DeviceEventEmitter.emit('performedExercisesUpdated');
+        }
+        setModalVisible(true);
+        if (parsed && parsed.exercises) {
+          console.log('Summary after assessment:', parsed.exercises.map((e) => ({
+            name: e.pretty_name || e.exercise_id,
+            total: e.reps_performed,
+            clean: e.reps_performed_perfect
+          })));
+        }
+      }, 200);
     } catch (e) {
       console.error('Error handling event:', e);
       Alert.alert('Error', 'Failed to process assessment results.');
@@ -1137,17 +1382,17 @@ const App = ({ isNightMode, setIsNightMode, inFocusMode, setInFocusMode }) => {
               'clean reps'               // scoreSubtitle
             );
           case 'Lunge':
-            detectorId = 'Lunge';
+            detectorId = 'LungeFront';
             scoringType = SMWorkoutLibrary.ScoringType.Reps;
             targetReps = 12;
-            uiElements = [SMWorkoutLibrary.UIElement.RepsCounter, SMWorkoutLibrary.UIElement.Timer];
+            uiElements = [SMWorkoutLibrary.UIElement.RepsCounter, SMWorkoutLibrary.UIElement.Timer, SMWorkoutLibrary.UIElement.GaugeOfMotion];
             return new SMWorkoutLibrary.SMAssessmentExercise(
-              'Lunge',           // name
+              'LungeFront',           // name
               35,                         // totalSeconds
-              'Lunge',            // videoInstruction
+              'LungeFront',            // videoInstruction
               null,                      // exerciseIntro
               uiElements,                // UI elements
-              'Lunge',            // detector
+              'LungeFront',            // detector
               '',                        // successSound
               new SMWorkoutLibrary.SMScoringParams(
                 scoringType,             // scoring type based on exercise
@@ -1190,32 +1435,32 @@ const App = ({ isNightMode, setIsNightMode, inFocusMode, setInFocusMode }) => {
               'Reps',                    // scoreTitle
               'clean reps'               // scoreSubtitle
             );
-          case 'Side Lunge':
-            detectorId = 'SideLunge';
+          case 'Side Lunge Right':
+            detectorId = 'LungeSideRight';
             scoringType = SMWorkoutLibrary.ScoringType.Reps;
             targetReps = 12;
             uiElements = [SMWorkoutLibrary.UIElement.RepsCounter, SMWorkoutLibrary.UIElement.Timer];
             return new SMWorkoutLibrary.SMAssessmentExercise(
-              'SideLunge',           // name
+              'LungeSideRight',           // name
               35,                         // totalSeconds
-              'SideLunge',            // videoInstruction
-              null,                      // exerciseIntro
-              uiElements,                // UI elements
-              'SideLunge',            // detector
-              '',                        // successSound
+              'LungeSideRight',           // videoInstruction
+              null,                       // exerciseIntro
+              uiElements,                 // UI elements
+              'LungeSideRight',           // detector
+              '',                         // successSound
               new SMWorkoutLibrary.SMScoringParams(
-                scoringType,             // scoring type based on exercise
-                0.3,                     // threshold
-                targetTime,              // targetTime (for plank and static holds)
-                targetReps,              // targetReps (for dynamic exercises)
-                null,                    // targetDistance
-                null                     // targetCalories
+                scoringType,              // scoring type based on exercise
+                0.3,                      // threshold
+                null,                     // targetTime (should be null for reps-based)
+                targetReps,               // targetReps (for dynamic exercises)
+                null,                     // targetDistance
+                null                      // targetCalories
               ),
-              '',                        // failedSound
-              exerciseName,              // exerciseTitle (display name)
-              'Complete the exercise',   // subtitle
-              'Reps',                    // scoreTitle
-              'clean reps'               // scoreSubtitle
+              '',                         // failedSound
+              exerciseName,               // exerciseTitle (display name)
+              'Complete the exercise',    // subtitle
+              'Reps',                     // scoreTitle
+              'clean reps'                // scoreSubtitle
             );
           case 'Mountain Climber Plank':
             detectorId = 'MountainClimberPlank';
@@ -1474,6 +1719,33 @@ const App = ({ isNightMode, setIsNightMode, inFocusMode, setInFocusMode }) => {
               'Time',                    // scoreTitle
               'seconds'               // scoreSubtitle
             );
+          case 'Side Lunge Left':
+            detectorId = 'LungeSideLeft';
+            scoringType = SMWorkoutLibrary.ScoringType.Reps;
+            targetReps = 12;
+            uiElements = [SMWorkoutLibrary.UIElement.RepsCounter, SMWorkoutLibrary.UIElement.Timer];
+            return new SMWorkoutLibrary.SMAssessmentExercise(
+              'LungeSideLeft',           // name
+              35,                         // totalSeconds
+              'LungeSideLeft',           // videoInstruction
+              null,                       // exerciseIntro
+              uiElements,                 // UI elements
+              'LungeSideLeft',           // detector
+              '',                         // successSound
+              new SMWorkoutLibrary.SMScoringParams(
+                scoringType,              // scoring type based on exercise
+                0.3,                      // threshold
+                null,                     // targetTime (should be null for reps-based)
+                targetReps,               // targetReps (for dynamic exercises)
+                null,                     // targetDistance
+                null                      // targetCalories
+              ),
+              '',                         // failedSound
+              exerciseName,               // exerciseTitle (display name)
+              'Complete the exercise',    // subtitle
+              'Reps',                     // scoreTitle
+              'clean reps'                // scoreSubtitle
+            );
           default:
             if (exerciseName === 'Lunge Jump') {
               detectorId = 'LungeJump';
@@ -1547,22 +1819,8 @@ const App = ({ isNightMode, setIsNightMode, inFocusMode, setInFocusMode }) => {
   };
 
   // Modified close handler for summary modal
-  const handleSummaryModalClose = () => {
+  const handleSummaryModalClose = async () => {
     setModalVisible(false);
-    // Check if retry is needed
-    if (parsedSummaryData && parsedSummaryData.exercises && parsedSummaryData.exercises.length > 0) {
-      const totalReps = parsedSummaryData.exercises.reduce((acc, ex) => acc + (ex.reps_performed || 0), 0);
-      const cleanReps = parsedSummaryData.exercises.reduce((acc, ex) => acc + (ex.reps_performed_perfect || 0), 0);
-      if (totalReps === 0) {
-        setRetryNeeded(true);
-        setRetryReason('No reps were performed. The assessment will restart.');
-        setRetryCountdown(10);
-      } else if (totalReps !== cleanReps) {
-        setRetryNeeded(true);
-        setRetryReason('Not all reps were clean. The assessment will restart.');
-        setRetryCountdown(10);
-      }
-    }
   };
 
   // New function to start a custom assessment from the modal
@@ -1621,7 +1879,6 @@ const App = ({ isNightMode, setIsNightMode, inFocusMode, setInFocusMode }) => {
 
         const result = await startCustomAssessment(workout, null, true, false);
         await handleEvent(result.summary);
-        await startFitnessAssessmentWithCleanCheck(result.summary);
 
       } catch (e) {
         showAlert('Assessment Error', e.message);
@@ -1634,7 +1891,7 @@ const App = ({ isNightMode, setIsNightMode, inFocusMode, setInFocusMode }) => {
   return (
     <SafeAreaView style={[styles.safeArea, isNightMode && { backgroundColor: '#111' }]}>
       <View style={[styles.mainContainer, { flex: 1, marginTop: 4, paddingBottom: 32, justifyContent: 'flex-start' }, isNightMode && { backgroundColor: '#111' }]}>
-        {isLoading && <ActivityIndicator size="large" color="#C4A484" />}
+      {isLoading && <ActivityIndicator size="large" color="#C4A484" />}
         
         {/* Focus Mode Header Section */}
         <View style={{marginTop: 4, marginBottom: 8}}>
@@ -1654,34 +1911,25 @@ const App = ({ isNightMode, setIsNightMode, inFocusMode, setInFocusMode }) => {
           </View>
         </View>
         {/* Stats Section */}
-        <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4, marginHorizontal: 2}}>
-          <View>
-            <Text style={{color: isNightMode ? '#fff' : '#111', fontSize: 20, fontWeight: 'bold'}}>Total Reps:</Text>
-            <Text style={{color: isNightMode ? '#fff' : '#111', fontSize: 20, fontWeight: 'bold'}}>Clean Reps.</Text>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4, marginHorizontal: 2 }}>
+          <View style={{ alignItems: 'center', flex: 1 }}>
+            <Text style={{ color: isNightMode ? '#fff' : '#111', fontSize: 16, fontWeight: 'bold' }}>Clean Reps</Text>
+            <Text style={{ color: isNightMode ? '#fff' : '#111', fontSize: 18, fontWeight: 'bold' }}>{todayCleanReps}</Text>
           </View>
-          <View style={{alignItems: 'flex-end'}}>
-            <Text style={{color: isNightMode ? '#fff' : '#111', fontSize: 18, fontWeight: 'bold', marginBottom: 2}}>{parsedSummaryData && parsedSummaryData.exercises ? parsedSummaryData.exercises.reduce((acc, ex) => acc + (ex.reps_performed || 0), 0) : 0}</Text>
-            <Text style={{color: isNightMode ? '#fff' : '#111', fontSize: 18, fontWeight: 'bold'}}>{parsedSummaryData && parsedSummaryData.exercises ? parsedSummaryData.exercises.reduce((acc, ex) => acc + (ex.reps_performed_perfect || 0), 0) : 0}</Text>
+          <View style={{ alignItems: 'center', flex: 1 }}>
+            <Text style={{ color: isNightMode ? '#fff' : '#111', fontSize: 16, fontWeight: 'bold' }}>Clean Time (s)</Text>
+            <Text style={{ color: isNightMode ? '#fff' : '#111', fontSize: 18, fontWeight: 'bold' }}>{todayCleanTime}</Text>
           </View>
         </View>
-        {/* Retry Countdown UI */}
-        {retryNeeded && retryCountdown !== null && (
-          <Text style={{color: '#E53935', fontSize: 15, fontWeight: 'bold', marginBottom: 2, marginLeft: 2}}>
-            {retryReason} Retry starting in {retryCountdown}s...
-          </Text>
-        )}
-        <Text style={{color: '#E53935', fontSize: 13, fontWeight: 'bold', marginBottom: 2, marginLeft: 2}}>Retry Required</Text>
-        {parsedSummaryData && parsedSummaryData.exercises && parsedSummaryData.exercises.length > 0 ? (
+        
+       
+        {/* Only show clean/score boxes and per-exercise list if there is valid summary data */}
+        {parsedSummaryData && parsedSummaryData.exercises && parsedSummaryData.exercises.length > 0 && (
+          // ...clean percentage and score boxes, per-exercise list...
           (() => {
-            const totalReps = parsedSummaryData.exercises.reduce((acc, ex) => acc + (ex.reps_performed || 0), 0);
-            const cleanReps = parsedSummaryData.exercises.reduce((acc, ex) => acc + (ex.reps_performed_perfect || 0), 0);
-            if (totalReps === cleanReps && totalReps > 0) {
-              return <Text style={{color: '#4CAF50', fontSize: 13, marginLeft: 2, marginBottom: 2}}>Perfect Assessment!!</Text>;
-            } else {
-              return null;
-            }
+            // ...existing code for clean percentage and score boxes, per-exercise list...
           })()
-        ) : null}
+        )}
         <View style={{height: 1, backgroundColor: '#E53935', width: '100%', marginBottom: 8}} />
         {/* Why Focus Mode Card */}
         <View style={{backgroundColor: isNightMode ? '#222' : '#222', borderRadius: 12, padding: 10, marginBottom: 8, marginHorizontal: 2}}>
@@ -1692,13 +1940,25 @@ const App = ({ isNightMode, setIsNightMode, inFocusMode, setInFocusMode }) => {
         </View>
         {/* Start Assessment Button */}
         <TouchableOpacity
-          style={{backgroundColor: '#E53935', borderRadius: 10, minHeight: 56, justifyContent: 'center', alignItems: 'center', marginBottom: 4, marginHorizontal: 2}}
-          onPress={() => {
-            setSelectedExercises([]); // Reset selection
-            setExerciseSelectionModalVisible(true);
+          style={{
+            backgroundColor: inFocusMode ? '#22C55E' : '#E53935', // green if in focus mode, red otherwise
+            borderRadius: 10,
+            minHeight: 56,
+            justifyContent: 'center',
+            alignItems: 'center',
+            marginBottom: 4,
+            marginHorizontal: 2,
+            opacity: 1,
           }}
+          onPress={() => {
+            if (inFocusMode) {
+              setSelectedExercises([]); // Reset selection
+              setExerciseSelectionModalVisible(true);
+            }
+          }}
+          disabled={!inFocusMode}
         >
-          <Text style={{color: '#fff', fontWeight: 'bold', fontSize: 20}}>Start Assessment</Text>
+          <Text style={{color: '#fff', fontWeight: 'bold', fontSize: 20}}>Choose your assessment</Text>
         </TouchableOpacity>
         {/* Start/Exit Focus Mode Button */}
         {!inFocusMode ? (
@@ -1711,29 +1971,41 @@ const App = ({ isNightMode, setIsNightMode, inFocusMode, setInFocusMode }) => {
         ) : (
           <TouchableOpacity 
             style={{backgroundColor: isNightMode ? '#333' : '#222', borderRadius: 10, minHeight: 56, justifyContent: 'center', alignItems: 'center', marginBottom: 4, marginHorizontal: 2}}
-            onPress={() => setInFocusMode(false)}
+            onPress={() => {
+              const totalReps = parsedSummaryData && parsedSummaryData.exercises
+                ? parsedSummaryData.exercises.reduce((acc, ex) => acc + (ex.reps_performed || 0), 0)
+                : 0;
+              const cleanReps = parsedSummaryData && parsedSummaryData.exercises
+                ? parsedSummaryData.exercises.reduce((acc, ex) => acc + (ex.reps_performed_perfect || 0), 0)
+                : 0;
+              if (totalReps === cleanReps) {
+                setInFocusMode(false);
+              } else {
+                console.log('Focus mode exited forcefully');
+              }
+            }}
           >
             <Text style={{color: '#fff', fontWeight: 'bold', fontSize: 20}}>Exit Focus Mode</Text>
           </TouchableOpacity>
         )}
-
+      
         {/* Credit Counter at Top Right (restored) */}
-        {/* Removed creditCounterContainer, profileSection, dark mode button, and motivational quote */}
+      {/* Removed creditCounterContainer, profileSection, dark mode button, and motivational quote */}
 
-        {/* Header Section - Remove logo and welcome text */}
-        {/* <View style={styles.headerContainer}>
-          <Image 
-              source={require('./assets/logo1.png')} 
-              style={styles.logo}
-              resizeMode="contain"
-            />
-            <Text style={styles.welcomeText}>Welcome to </Text>
-            <View style={{ flexDirection: 'row' }}>
-              <Text style={[styles.titleText, { color: 'white' }]}>Ar</Text>
-              <Text style={[styles.titleText, { color: '#E08714' }]}>thlete</Text>
-              <Text style={[styles.titleText, { color: 'white' }]}> AI Experience</Text>
-            </View>
-          </View> */}
+      {/* Header Section - Remove logo and welcome text */}
+      {/* <View style={styles.headerContainer}>
+        <Image 
+            source={require('./assets/logo1.png')} 
+            style={styles.logo}
+            resizeMode="contain"
+          />
+          <Text style={styles.welcomeText}>Welcome to </Text>
+          <View style={{ flexDirection: 'row' }}>
+            <Text style={[styles.titleText, { color: 'white' }]}>Ar</Text>
+            <Text style={[styles.titleText, { color: '#E08714' }]}>thlete</Text>
+            <Text style={[styles.titleText, { color: 'white' }]}> AI Experience</Text>
+          </View>
+        </View> */}
 
         {/* Profile Button and Motivational Quote */}
       {/* Profile Button and Motivational Quote */}
@@ -1765,10 +2037,21 @@ const App = ({ isNightMode, setIsNightMode, inFocusMode, setInFocusMode }) => {
             style={{ width: '92%', borderRadius: 24, padding: 24, alignItems: 'center', shadowColor: '#b6c3e0', shadowOpacity: 0.10, shadowRadius: 24, shadowOffset: { width: 0, height: 8 }, elevation: 8, borderWidth: 2, borderColor: '#000' }}
           >
             {parsedSummaryData && parsedSummaryData.exercises && parsedSummaryData.exercises.length > 0 ? (() => {
-              // Calculate overall clean reps and total reps
-              const totalCleanReps = parsedSummaryData.exercises.reduce((sum, ex) => sum + (ex.reps_performed_perfect ?? 0), 0);
-              const totalReps = parsedSummaryData.exercises.reduce((sum, ex) => sum + (ex.reps_performed ?? 0), 0);
-              const percent = totalReps > 0 ? Math.round((totalCleanReps / totalReps) * 100) : 0;
+              // Calculate overall clean % (sum time for time-based, reps for rep-based)
+              let totalClean = 0;
+              let totalPossible = 0;
+              parsedSummaryData.exercises.forEach(ex => {
+                const exerciseName = ex.exercise_info?.pretty_name || ex.exercise_info?.exercise_id || ex.pretty_name || ex.exercise_id || ex.name;
+                const scoring = exerciseScoringMap[exerciseName] || { type: SMWorkoutLibrary.ScoringType.Reps };
+                if (scoring.type === SMWorkoutLibrary.ScoringType.Time) {
+                  totalClean += ex.time_in_position_perfect ?? ex.exercise_info?.time_in_position_perfect ?? 0;
+                  totalPossible += ex.time_in_position ?? ex.exercise_info?.time_in_position ?? 0;
+                } else {
+                  totalClean += ex.reps_performed_perfect ?? ex.exercise_info?.reps_performed_perfect ?? 0;
+                  totalPossible += ex.reps_performed ?? ex.exercise_info?.reps_performed ?? 0;
+                }
+              });
+              const percent = totalPossible > 0 ? Math.round((totalClean / totalPossible) * 100) : 0;
               // Calculate average score
               const scores = parsedSummaryData.exercises.map(ex => ex.total_score ?? 0);
               const avgScore = scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0;
@@ -1795,7 +2078,7 @@ const App = ({ isNightMode, setIsNightMode, inFocusMode, setInFocusMode }) => {
                         <View style={{ position: 'absolute' }}>
                           <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#5b7cff', textAlign: 'center' }}>{percent}%</Text>
                           <Text style={{ fontSize: 14, color: '#7a8ca3', textAlign: 'center', fontWeight: '600' }}>Clean</Text>
-                        </View>
+                  </View>
                         <Svg width={110} height={110} style={{ position: 'absolute', left: 0, top: 0 }}>
                           <Circle cx={55} cy={55} r={radius} stroke="#e6eaf3" strokeWidth={strokeWidth} fill="none" />
                           <Circle
@@ -1810,7 +2093,7 @@ const App = ({ isNightMode, setIsNightMode, inFocusMode, setInFocusMode }) => {
                             origin="55,55"
                           />
                         </Svg>
-                      </View>
+                        </View>
                     </LinearGradient>
                     {/* Score Box */}
                     <LinearGradient
@@ -1821,47 +2104,266 @@ const App = ({ isNightMode, setIsNightMode, inFocusMode, setInFocusMode }) => {
                       <Text style={{ color: '#7a8ca3', fontSize: 16, marginBottom: 8, fontWeight: '600', letterSpacing: 0.5 }}>Score</Text>
                       <Text style={{ color: '#5b7cff', fontSize: 36, fontWeight: 'bold', letterSpacing: 1 }}>{avgScore}</Text>
                     </LinearGradient>
-                  </View>
-                  {/* List each exercise with clean/total reps and score (no graph) */}
-                  <ScrollView style={{ width: '100%' }} contentContainerStyle={{ alignItems: 'center', paddingBottom: 24 }}>
+                    </View>
+                  {/* List each exercise with clean/total reps or time and score (no graph) */}
+                  <ScrollView style={{ width: '100%', maxHeight: 400 }} contentContainerStyle={{ alignItems: 'center', paddingBottom: 24 }}>
                     {parsedSummaryData.exercises.length > 0 ? (
                       parsedSummaryData.exercises.map((ex, idx) => {
-                        const cleanReps = ex.reps_performed_perfect ?? 0;
-                        const totalReps = ex.reps_performed ?? 0;
-                        const score = ex.total_score ?? 0;
+                        const exerciseName = ex.exercise_info?.pretty_name || ex.exercise_info?.exercise_id || ex.pretty_name || ex.exercise_id || ex.name;
+                        const scoring = exerciseScoringMap[exerciseName] || { type: SMWorkoutLibrary.ScoringType.Reps };
+                        let clean = 0, total = 0, cleanLabel = '', totalLabel = '';
+                        if (scoring.type === SMWorkoutLibrary.ScoringType.Time) {
+                          clean = ex.time_in_position_perfect ?? ex.exercise_info?.time_in_position_perfect ?? 0;
+                          total = ex.time_in_position ?? ex.exercise_info?.time_in_position ?? 0;
+                          cleanLabel = 'Clean Time (s)';
+                          totalLabel = 'Total Time (s)';
+                        } else {
+                          clean = ex.reps_performed_perfect ?? ex.exercise_info?.reps_performed_perfect ?? 0;
+                          total = ex.reps_performed ?? ex.exercise_info?.reps_performed ?? 0;
+                          cleanLabel = 'Clean Reps';
+                          totalLabel = 'Total Reps';
+                        }
                         return (
                           <View key={idx} style={{ marginBottom: 24, alignItems: 'center', width: '100%' }}>
-                            <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#222', marginBottom: 8 }}>{ex.pretty_name || ex.exercise_id || 'Exercise'}</Text>
+                            <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#222', marginBottom: 8 }}>{formatExerciseName(exerciseName)}</Text>
                             <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginBottom: 8 }}>
                               <View style={{ alignItems: 'center', marginHorizontal: 18 }}>
-                                <Text style={{ color: '#888', fontSize: 14 }}>Clean Reps</Text>
-                                <Text style={{ color: '#222', fontSize: 22, fontWeight: 'bold' }}>{cleanReps}</Text>
-                              </View>
+                                <Text style={{ color: '#888', fontSize: 14 }}>{cleanLabel}</Text>
+                                <Text style={{ color: '#222', fontSize: 22, fontWeight: 'bold' }}>{clean}</Text>
+                        </View>
                               <View style={{ width: 1, height: 36, backgroundColor: '#000', marginHorizontal: 8 }} />
                               <View style={{ alignItems: 'center', marginHorizontal: 18 }}>
-                                <Text style={{ color: '#888', fontSize: 14 }}>Total Reps</Text>
-                                <Text style={{ color: '#222', fontSize: 22, fontWeight: 'bold' }}>{totalReps}</Text>
-                              </View>
-                            </View>
-                          </View>
+                                <Text style={{ color: '#888', fontSize: 14 }}>{totalLabel}</Text>
+                                <Text style={{ color: '#222', fontSize: 22, fontWeight: 'bold' }}>{total}</Text>
+                        </View>
+                    </View>
+                </View>
                         );
                       })
-                    ) : (
-                      <Text style={{ color: '#888', fontSize: 16, marginTop: 16 }}>No exercise data available.</Text>
-                    )}
-                  </ScrollView>
+                    ) : null}
+            </ScrollView>
+                  {/* Start Again or Close Button */}
+                  {(() => {
+                    let exercisesToRetry = [];
+                    let allSkipped = false;
+                    if (parsedSummaryData && parsedSummaryData.exercises && Array.isArray(parsedSummaryData.exercises)) {
+                      exercisesToRetry = parsedSummaryData.exercises.filter((ex) => {
+                        const exerciseName = ex.exercise_info?.pretty_name || 
+                                           ex.exercise_info?.exercise_id || 
+                                           ex.pretty_name || 
+                                           ex.exercise_id ||
+                                           ex.name;
+                        
+                        // Determine if this is a time-based exercise
+                        const scoring = exerciseScoringMap[exerciseName] || { type: SMWorkoutLibrary.ScoringType.Reps };
+                        const isTimeBased = scoring.type === SMWorkoutLibrary.ScoringType.Time;
+                        
+                        if (isTimeBased) {
+                          // For time-based exercises (like planks), check time in position
+                          const totalTime = ex.time_in_position ?? ex.exercise_info?.time_in_position ?? 0;
+                          const perfectTime = ex.time_in_position_perfect ?? ex.exercise_info?.time_in_position_perfect ?? 0;
+                          return totalTime > 0 && totalTime !== perfectTime;
+                        } else {
+                          // For rep-based exercises, check reps performed
+                          const reps = ex.reps_performed ?? ex.exercise_info?.reps_performed ?? 0;
+                          const clean = ex.reps_performed_perfect ?? ex.exercise_info?.reps_performed_perfect ?? 0;
+                          return reps > 0 && reps !== clean;
+                        }
+                      });
+                      
+                      // Check if all are skipped (all reps/time == 0)
+                      allSkipped = parsedSummaryData.exercises.every((ex) => {
+                        const exerciseName = ex.exercise_info?.pretty_name || 
+                                           ex.exercise_info?.exercise_id || 
+                                           ex.pretty_name || 
+                                           ex.exercise_id ||
+                                           ex.name;
+                        
+                        const scoring = exerciseScoringMap[exerciseName] || { type: SMWorkoutLibrary.ScoringType.Reps };
+                        const isTimeBased = scoring.type === SMWorkoutLibrary.ScoringType.Time;
+                        
+                        if (isTimeBased) {
+                          const totalTime = ex.time_in_position ?? ex.exercise_info?.time_in_position ?? 0;
+                          return totalTime === 0;
+                        } else {
+                          const reps = ex.reps_performed ?? ex.exercise_info?.reps_performed ?? 0;
+                          return reps === 0;
+                        }
+                      });
+                    }
+                    if (exercisesToRetry.length > 0) {
+                      // Show Start Again button
+                      return (
+            <TouchableOpacity
+                          style={{ marginTop: 16, backgroundColor: '#2196F3', borderRadius: 12, paddingVertical: 14, paddingHorizontal: 36, borderWidth: 1, borderColor: '#1976D2' }}
+                          onPress={async () => {
+                            setModalVisible(false);
+                            setParsedSummaryData(null); // Reset summary data
+                            setIsLoading(true);
+                            try {
+                              const retryExercises = exercisesToRetry.map((ex: any) => {
+                                // ...existing retry mapping logic...
+                                const name = ex.exercise_info?.pretty_name || 
+                                           ex.exercise_info?.exercise_id || 
+                                           ex.pretty_name || 
+                                           ex.exercise_id ||
+                                           ex.name;
+                                if (!name) return null;
+                                if (!exerciseIdMap[name] && !exerciseScoringMap[name]) {
+                                  const fallbackName = Object.keys(exerciseIdMap).find(key => 
+                                    key.toLowerCase().includes(name.toLowerCase()) || 
+                                    name.toLowerCase().includes(key.toLowerCase())
+                                  );
+                                  if (fallbackName) {
+                                    const detectorId = exerciseIdMap[fallbackName];
+                                    const scoring = exerciseScoringMap[fallbackName];
+                                    const scoringType = scoring.type;
+                                    const targetReps = 10;
+                                    const duration = 35;
+                                    const scoringParams = new SMWorkoutLibrary.SMScoringParams(
+                                      scoringType,
+                                      0.3,
+                                      scoringType === SMWorkoutLibrary.ScoringType.Time ? duration : null,
+                                      scoringType === SMWorkoutLibrary.ScoringType.Reps ? targetReps : null,
+                                      null,
+                                      null
+                                    );
+                                    return new SMWorkoutLibrary.SMAssessmentExercise(
+                                      detectorId,
+                                      duration,
+                                      detectorId,
+                                      null,
+                                      scoring.ui,
+                                      detectorId,
+                                      '',
+                                      scoringParams,
+                                      '',
+                                      name,
+                                      scoringType === SMWorkoutLibrary.ScoringType.Time ? 'Hold the position' : 'Complete clean reps',
+                                      scoringType === SMWorkoutLibrary.ScoringType.Time ? 'Time' : 'Reps',
+                                      scoringType === SMWorkoutLibrary.ScoringType.Time ? 'seconds held' : 'clean reps'
+                                    );
+                                  }
+                                  // If no fallback found, use a default exercise
+                                  return new SMWorkoutLibrary.SMAssessmentExercise(
+                                    'SquatRegular',
+                                    35,
+                                    'SquatRegular',
+                                    null,
+                                    [SMWorkoutLibrary.UIElement.RepsCounter, SMWorkoutLibrary.UIElement.Timer],
+                                    'SquatRegular',
+                                    '',
+                                    new SMWorkoutLibrary.SMScoringParams(
+                                      SMWorkoutLibrary.ScoringType.Reps,
+                                      0.3,
+                                      null,
+                                      10,
+                                      null,
+                                      null
+                                    ),
+                                    '',
+                                    name,
+                                    'Complete clean reps',
+                                    'Reps',
+                                    'clean reps'
+                                  );
+                                }
+                                const detectorId = exerciseIdMap[name] || name;
+                                const scoring = exerciseScoringMap[name] || { type: SMWorkoutLibrary.ScoringType.Reps, ui: [SMWorkoutLibrary.UIElement.RepsCounter] };
+                                const scoringType = scoring.type;
+                                let targetReps = 10;
+                                let duration = 35;
+                                if (scoringType === SMWorkoutLibrary.ScoringType.Reps) {
+                                  targetReps = 10;
+                                }
+                                if (scoringType === SMWorkoutLibrary.ScoringType.Time) {
+                                  duration = 35;
+                                }
+                                const scoringParams = new SMWorkoutLibrary.SMScoringParams(
+                                  scoringType,
+                                  0.3,
+                                  scoringType === SMWorkoutLibrary.ScoringType.Time ? duration : null,
+                                  scoringType === SMWorkoutLibrary.ScoringType.Reps ? targetReps : null,
+                                  null,
+                                  null
+                                );
+                                return new SMWorkoutLibrary.SMAssessmentExercise(
+                                  detectorId,
+                                  duration,
+                                  detectorId,
+                                  null,
+                                  scoring.ui,
+                                  detectorId,
+                                  '',
+                                  scoringParams,
+                                  '',
+                                  name,
+                                  scoringType === SMWorkoutLibrary.ScoringType.Time ? 'Hold the position' : 'Complete clean reps',
+                                  scoringType === SMWorkoutLibrary.ScoringType.Time ? 'Time' : 'Reps',
+                                  scoringType === SMWorkoutLibrary.ScoringType.Time ? 'seconds held' : 'clean reps'
+                                );
+                              }).filter(Boolean) as SMWorkoutLibrary.SMExercise[];
+                              if (retryExercises.length === 0) {
+                                setIsLoading(false);
+                                showAlert('No exercises to retry', 'There are no exercises to retry.');
+                                return;
+                              }
+                              await new Promise(resolve => setTimeout(resolve, 1500)); // Longer delay for iOS
+                              try {
+                                const result = await startCustomAssessment(
+                                  new SMWorkoutLibrary.SMWorkout(
+                                    'retry-unclean-exercises',
+                                    'Retry Unclean Exercises',
+                                    null,
+                                    null,
+                                    retryExercises,
+                                    null,
+                                    null,
+                                    null
+                                  ),
+                                  null,
+                                  true,
+                                  false
+                                );
+                                if (result && result.summary) {
+                                  handleEvent(result.summary);
+                                }
+                              } catch (e) {
+                                showAlert('Retry Error', e.message || String(e));
+                              }
+                            } catch (e) {
+                              showAlert('Retry Error', e.message || String(e));
+                            } finally {
+                              setIsLoading(false);
+                            }
+                          }}
+                        >
+                          <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 18 }}>Start Again</Text>
+            </TouchableOpacity>
+                      );
+                    }
+                    // Show Close button if all are skipped or all are clean
+                    if (allSkipped || (parsedSummaryData && parsedSummaryData.exercises && parsedSummaryData.exercises.length > 0)) {
+                      return (
+                        <TouchableOpacity
+                          style={{ marginTop: 16, backgroundColor: '#f5f5f5', borderRadius: 12, paddingVertical: 14, paddingHorizontal: 36, borderWidth: 1, borderColor: '#eee' }}
+                          onPress={() => setModalVisible(false)}
+                        >
+                          <Text style={{ color: '#222', fontWeight: 'bold', fontSize: 18 }}>Close</Text>
+                        </TouchableOpacity>
+                      );
+                    }
+                    return null;
+                  })()}
                 </>
               );
             })() : (
-              <Text style={[styles.modalText, { color: '#222' }]}>{summaryMessage}</Text>
+              Platform.OS === 'android' ? (
+                <Text style={[styles.modalText, { color: '#222' }]}>No exercises performed in this assessment.</Text>
+              ) : (
+                <Text style={[styles.modalText, { color: '#222' }]}>{summaryMessage}</Text>
+              )
             )}
-            {/* Close Button */}
-            <TouchableOpacity
-              style={{ marginTop: 8, backgroundColor: '#f5f5f5', borderRadius: 12, paddingVertical: 14, paddingHorizontal: 36, borderWidth: 1, borderColor: '#eee' }}
-              onPress={handleSummaryModalClose}
-            >
-              <Text style={{ color: '#222', fontWeight: 'bold', fontSize: 18 }}>Close</Text>
-            </TouchableOpacity>
           </LinearGradient>
         </View>
       </Modal>
@@ -1922,8 +2424,8 @@ const App = ({ isNightMode, setIsNightMode, inFocusMode, setInFocusMode }) => {
 
           {/* Exercise List */}
           <ScrollView style={{flex: 1}}>
-            <View style={[styles.listContainer, { borderColor: isNightMode ? '#333' : '#ccc', backgroundColor: isNightMode ? '#1c1c1e' : '#fff' }]}>
-              {Object.keys(exerciseIdMap).map((exerciseName, index) => {
+            <View style={[styles.listContainer, { borderColor: isNightMode ? '#333' : '#ccc', backgroundColor: isNightMode ? '#1c1c1e' : '#fff' }]}> 
+              {Array.from(new Set(planData.flatMap(plan => plan.exercises?.map(ex => ex.name) || []))).map((exerciseName, index) => {
                 const selectedExercise = selectedExercises.find(e => e.name === exerciseName);
                 const isSelected = !!selectedExercise;
                 const isLastItem = index === Object.keys(exerciseIdMap).length - 1;
@@ -1939,7 +2441,7 @@ const App = ({ isNightMode, setIsNightMode, inFocusMode, setInFocusMode }) => {
                         <View style={[styles.checkbox, { borderColor: isNightMode && !isSelected ? '#555' : '#cecece' }, isSelected && styles.checkboxSelected]}>
                           {isSelected && <Text style={styles.checkmark}>✓</Text>}
                         </View>
-                        <Text style={[styles.selectionModalExerciseText, { color: isNightMode ? '#fff' : '#000' }]}>{exerciseName}</Text>
+                        <Text style={[styles.selectionModalExerciseText, { color: isNightMode ? '#fff' : '#000' }]}>{formatExerciseName(exerciseName)}</Text>
                       </View>
                       {isSelected && (
                         <View 
@@ -2090,16 +2592,16 @@ const App = ({ isNightMode, setIsNightMode, inFocusMode, setInFocusMode }) => {
                           <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
                             <View style={[styles.planPlayIcon, { backgroundColor: iconColor }]}>
                               <Text style={styles.planPlayIconText}>▶</Text>
-                            </View>
-                            <View>
+                          </View>
+                          <View>
                               <Text style={[styles.planExerciseName, { color: isNightMode ? '#fff' : '#000' }]}>{ex.name}</Text>
                               <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
                                 <Text style={{ color: iconColor, fontSize: 14, marginRight: 6 }}>🕒</Text>
                                 <Text style={styles.planExerciseDuration}>
                                   {formatDuration(ex.duration[selectedLevel])}
                                 </Text>
-                              </View>
-                            </View>
+                          </View>
+                        </View>
                           </View>
                           <Text style={styles.planExerciseReps}>
                             Repetition {ex.reps[selectedLevel]}x
@@ -2128,12 +2630,19 @@ const App = ({ isNightMode, setIsNightMode, inFocusMode, setInFocusMode }) => {
                             const customExercises = selectedPlan.exercises.map((exercise, idx) => {
                               const scoring = exerciseScoringMap[exercise.name] || { type: SMWorkoutLibrary.ScoringType.Reps, ui: [SMWorkoutLibrary.UIElement.RepsCounter, SMWorkoutLibrary.UIElement.Timer] };
                               // Special handling for Plank & Core Stability exercises
-                              if (["High Plank", "Side Plank", "Tuck Hold", "Plank", "Hamstring mobility", "Standing hamstring mobility", "Side bend", "Standing knee raises", "Jefferson curl"].includes(exercise.name)) {
+                              if (["High Plank", "Side Plank", "Tuck Hold", "Plank", "Hamstring Mobility", "Standing Hamstring Mobility", "Side bend", "Standing knee raises", "Jefferson curl"].includes(exercise.name)) {
                                 const scoring = exerciseScoringMap[exercise.name];
+                                // Set correct video instruction names for hamstring exercises
+                                let videoInstruction = exerciseIdMap[exercise.name];
+                                if (exercise.name === "Hamstring Mobility") {
+                                  videoInstruction = "HamstringMobility";
+                                } else if (exercise.name === "Standing Hamstring Mobility") {
+                                  videoInstruction = "StandingHamstringMobility";
+                                }
                                 return new SMWorkoutLibrary.SMAssessmentExercise(
                                   exerciseIdMap[exercise.name],
                                   exercise.duration[selectedLevel],
-                                  exerciseIdMap[exercise.name],
+                                  videoInstruction,
                                   null,
                                   scoring.ui,
                                   exerciseIdMap[exercise.name],
@@ -2665,9 +3174,7 @@ const App = ({ isNightMode, setIsNightMode, inFocusMode, setInFocusMode }) => {
     }
     if (needsRetry) {
       // Do not auto-retry here; handled in modal close now
-      setRetryNeeded(true);
-      setRetryReason(retryReason);
-      setRetryCountdown(10);
+     
     }
   }
 

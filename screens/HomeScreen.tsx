@@ -15,6 +15,7 @@ import {
   SafeAreaView,
   Platform,
 } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 import {
   configure,
   startAssessment,
@@ -32,8 +33,20 @@ import React from 'react';
 import PlanSection from '../components/PlanSection';
 import PropTypes from 'prop-types';
 import { useIsFocused } from '@react-navigation/native';
+import { addPerformedExercises, getPerformedExercises } from '../utils/exerciseTracker';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
+
+// Add this helper function near the top, after imports:
+function formatExerciseName(name) {
+  if (!name) return '';
+  return name
+    .replace(/[_-]/g, ' ')
+    .replace(/([a-z])([A-Z])/g, '$1 $2')
+    .replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
 
 const App = ({ isNightMode, setIsNightMode }) => {
   const [didConfig, setDidConfig] = useState(false);
@@ -63,6 +76,10 @@ const App = ({ isNightMode, setIsNightMode }) => {
   const [selectedLevel, setSelectedLevel] = useState('beginner');
   const [startDisabled, setStartDisabled] = useState(false);
 
+  const [lastScorePercent, setLastScorePercent] = useState(88); // Default to 88% for initial UI
+  const [performedCount, setPerformedCount] = useState(0);
+  const [cleanPercent, setCleanPercent] = useState(0);
+
   const isFocused = useIsFocused();
 
   // Add level durations mapping
@@ -80,7 +97,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
       level: 'All Levels',
       time: '30-45 min',
       focus: 'Full Body',
-      image: require('../assets/Trial.png'),
+      image: require('../assets/squatf.png'),
       exercises: [
         {
           name: 'Push-ups',
@@ -204,7 +221,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
       level: 'Beginner',
       time: '4 min',
       focus: 'Core',
-      image: require('../assets/plankM.png'),
+      image: require('../assets/plank1.png'),
       exercises: [
         {
           name: 'High Plank',
@@ -301,7 +318,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
           image: require('../assets/MobileM.png')
         },
         {
-          name: 'Side bend',
+          name: 'Side Bend Left',
           duration: {
             beginner: 30,
             performer: 60,
@@ -315,7 +332,35 @@ const App = ({ isNightMode, setIsNightMode }) => {
           image: require('../assets/MobileM.png')
         },
         {
-          name: 'Standing knee raises',
+          name: 'Side Bend Right',
+          duration: {
+            beginner: 30,
+            performer: 60,
+            advanced: 120
+          },
+          reps: {
+            beginner: 10,
+            performer: 20,
+            advanced: 30
+          },
+          image: require('../assets/MobileM.png')
+        },
+        {
+          name: 'Standing Knee Raise Left',
+          duration: {
+            beginner: 30,
+            performer: 60,
+            advanced: 120
+          },
+          reps: {
+            beginner: 10,
+            performer: 20,
+            advanced: 30
+          },
+          image: require('../assets/MobileM.png')
+        },
+        {
+          name: 'Standing Knee Raise Right',
           duration: {
             beginner: 30,
             performer: 60,
@@ -421,6 +466,34 @@ const App = ({ isNightMode, setIsNightMode }) => {
             advanced: 35
           },
           image: require('../assets/JumpingJacks.png')
+        },
+        {
+          name: 'Standing Knee Raise Left',
+          duration: {
+            beginner: 30,
+            performer: 60,
+            advanced: 120
+          },
+          reps: {
+            beginner: 20,
+            performer: 30,
+            advanced: 40
+          },
+          image: require('../assets/JumpingJacks.png')
+        },
+        {
+          name: 'Standing Knee Raise Right',
+          duration: {
+            beginner: 30,
+            performer: 60,
+            advanced: 120
+          },
+          reps: {
+            beginner: 20,
+            performer: 30,
+            advanced: 40
+          },
+          image: require('../assets/JumpingJacks.png')
         }
       ]
     },
@@ -517,7 +590,21 @@ const App = ({ isNightMode, setIsNightMode }) => {
           image: require('../assets/JumpingJacks.png')
         },
         {
-          name: 'Standing Knee Raise',
+          name: 'Standing Knee Raise Left',
+          duration: {
+            beginner: 30,
+            performer: 60,
+            advanced: 120
+          },
+          reps: {
+            beginner: 20,
+            performer: 30,
+            advanced: 40
+          },
+          image: require('../assets/JumpingJacks.png')
+        },
+        {
+          name: 'Standing Knee Raise Right',
           duration: {
             beginner: 30,
             performer: 60,
@@ -542,18 +629,22 @@ const App = ({ isNightMode, setIsNightMode }) => {
     'High Plank': 'PlankHighStatic',
     'Side Plank': 'PlankSideLowStatic',
     'Tuck Hold': 'TuckHold',
-    'Hamstring mobility': 'StandingAlternateToeTouch',
-    'Standing hamstring mobility': 'StandingAlternateToeTouch',
+    'Hamstring mobility': 'HamstringMobility',
+    'Standing hamstring mobility': 'StandingHamstringMobility',
     'Side bend': 'StandingSideBendRight',
+    'Side Bend Left': 'StandingSideBendLeft',
+    'Side Bend Right': 'StandingSideBendRight',
     'Standing knee raises': 'HighKnees',
     'Jefferson curl': 'JeffersonCurlRight',
     'Jumping Jacks': 'JumpingJacks',
     'High Knees': 'HighKnees',
     'Ski Jumps': 'SkiJumps',
     'Skater Hops': 'SkaterHops',
-    'Lunge': 'Lunge',
+    'Lunge': 'LungeFront',
     'Jumps': 'Jumps',
     'Standing Knee Raise': 'StandingKneeRaiseLeft',
+    'Standing Knee Raise Left': 'StandingKneeRaiseLeft',
+    'Standing Knee Raise Right': 'StandingKneeRaiseRight',
   };
 
   // Map display names to scoring type and UI
@@ -564,11 +655,13 @@ const App = ({ isNightMode, setIsNightMode }) => {
     'High Plank': { type: SMWorkoutLibrary.ScoringType.Time, ui: [SMWorkoutLibrary.UIElement.Timer] },
     'Side Plank': { type: SMWorkoutLibrary.ScoringType.Time, ui: [SMWorkoutLibrary.UIElement.Timer] },
     'Tuck Hold': { type: SMWorkoutLibrary.ScoringType.Time, ui: [SMWorkoutLibrary.UIElement.Timer] },
-    'Hamstring mobility': { type: SMWorkoutLibrary.ScoringType.Reps, ui: [SMWorkoutLibrary.UIElement.RepsCounter, SMWorkoutLibrary.UIElement.Timer] },
-    'Standing hamstring mobility': { type: SMWorkoutLibrary.ScoringType.Reps, ui: [SMWorkoutLibrary.UIElement.RepsCounter, SMWorkoutLibrary.UIElement.Timer] },
+    'Hamstring mobility': { type: SMWorkoutLibrary.ScoringType.Time, ui: [SMWorkoutLibrary.UIElement.RepsCounter, SMWorkoutLibrary.UIElement.Timer] },
+    'Standing hamstring mobility': { type: SMWorkoutLibrary.ScoringType.Time, ui: [SMWorkoutLibrary.UIElement.RepsCounter, SMWorkoutLibrary.UIElement.Timer] },
     'Side bend': { type: SMWorkoutLibrary.ScoringType.Time, ui: [SMWorkoutLibrary.UIElement.Timer] },
+    'Side Bend Left': { type: SMWorkoutLibrary.ScoringType.Time, ui: [SMWorkoutLibrary.UIElement.Timer] },
+    'Side Bend Right': { type: SMWorkoutLibrary.ScoringType.Time, ui: [SMWorkoutLibrary.UIElement.Timer] },
     'Standing knee raises': { type: SMWorkoutLibrary.ScoringType.Reps, ui: [SMWorkoutLibrary.UIElement.RepsCounter, SMWorkoutLibrary.UIElement.Timer] },
-    'Jefferson curl': { type: SMWorkoutLibrary.ScoringType.Time, ui: [SMWorkoutLibrary.UIElement.Timer] },
+    'Jefferson curl': { type: SMWorkoutLibrary.ScoringType.Time, ui: [SMWorkoutLibrary.UIElement.GaugeOfMotion, SMWorkoutLibrary.UIElement.Timer] },
     'Jumping Jacks': { type: SMWorkoutLibrary.ScoringType.Reps, ui: [SMWorkoutLibrary.UIElement.RepsCounter, SMWorkoutLibrary.UIElement.Timer] },
     'High Knees': { type: SMWorkoutLibrary.ScoringType.Reps, ui: [SMWorkoutLibrary.UIElement.RepsCounter, SMWorkoutLibrary.UIElement.Timer] },
     'Ski Jumps': { type: SMWorkoutLibrary.ScoringType.Reps, ui: [SMWorkoutLibrary.UIElement.RepsCounter, SMWorkoutLibrary.UIElement.Timer] },
@@ -576,6 +669,8 @@ const App = ({ isNightMode, setIsNightMode }) => {
     'Lunge': { type: SMWorkoutLibrary.ScoringType.Reps, ui: [SMWorkoutLibrary.UIElement.RepsCounter, SMWorkoutLibrary.UIElement.Timer] },
     'Jumps': { type: SMWorkoutLibrary.ScoringType.Reps, ui: [SMWorkoutLibrary.UIElement.RepsCounter, SMWorkoutLibrary.UIElement.Timer] },
     'Standing Knee Raise': { type: SMWorkoutLibrary.ScoringType.Time, ui: [SMWorkoutLibrary.UIElement.Timer] },
+    'Standing Knee Raise Left': { type: SMWorkoutLibrary.ScoringType.Time, ui: [SMWorkoutLibrary.UIElement.Timer] },
+    'Standing Knee Raise Right': { type: SMWorkoutLibrary.ScoringType.Time, ui: [SMWorkoutLibrary.UIElement.Timer] },
   };
 
   useEffect(() => {
@@ -599,6 +694,16 @@ const App = ({ isNightMode, setIsNightMode }) => {
       workoutDidFinishSubscription.remove();
     };
   }, [isFocused]);
+
+  useEffect(() => {
+    const loadCount = async () => {
+      const all = await getPerformedExercises();
+      setPerformedCount(all.length);
+    };
+    loadCount();
+    const sub = DeviceEventEmitter.addListener('performedExercisesUpdated', loadCount);
+    return () => sub.remove();
+  }, []);
 
   const analyzePerformance = (data: any) => {
     const strengths: string[] = [];
@@ -638,11 +743,49 @@ const App = ({ isNightMode, setIsNightMode }) => {
     if (!isFocused) return;
     try {
       console.log('Event received:', summary);
-    setSummaryMessage(summary);
+      setSummaryMessage(summary);
       let parsed: any = null;
       try {
         parsed = JSON.parse(summary);
         setParsedSummaryData(parsed);
+        // Calculate and store the latest score percent and clean percent
+        if (parsed && parsed.exercises && parsed.exercises.length > 0) {
+          let totalClean = 0;
+          let totalPossible = 0;
+          parsed.exercises.forEach(ex => {
+            const exerciseName = ex.exercise_info?.pretty_name || ex.exercise_info?.exercise_id || ex.pretty_name || ex.exercise_id || ex.name;
+            const scoring = exerciseScoringMap[exerciseName] || { type: SMWorkoutLibrary.ScoringType.Reps };
+            if (scoring.type === SMWorkoutLibrary.ScoringType.Time) {
+              totalClean += ex.time_in_position_perfect ?? ex.exercise_info?.time_in_position_perfect ?? 0;
+              totalPossible += ex.time_in_position ?? ex.exercise_info?.time_in_position ?? 0;
+            } else {
+              totalClean += ex.reps_performed_perfect ?? ex.exercise_info?.reps_performed_perfect ?? 0;
+              totalPossible += ex.reps_performed ?? ex.exercise_info?.reps_performed ?? 0;
+            }
+          });
+          const percent = totalPossible > 0 ? Math.round((totalClean / totalPossible) * 100) : 0;
+          setLastScorePercent(percent);
+          setCleanPercent(percent);
+          // Track performed exercises
+          const performed = parsed.exercises.filter(ex => {
+            const exerciseName = ex.exercise_info?.pretty_name || ex.exercise_info?.exercise_id || ex.pretty_name || ex.exercise_id || ex.name;
+            const scoring = exerciseScoringMap[exerciseName] || { type: SMWorkoutLibrary.ScoringType.Reps };
+            if (scoring.type === SMWorkoutLibrary.ScoringType.Time) {
+              const total = ex.time_in_position ?? ex.exercise_info?.time_in_position ?? 0;
+              return total > 0;
+            } else {
+              const reps = ex.reps_performed ?? ex.exercise_info?.reps_performed ?? 0;
+              return reps > 0;
+            }
+          }).map(ex =>
+            ex.exercise_info?.pretty_name ||
+            ex.exercise_info?.exercise_id ||
+            ex.pretty_name ||
+            ex.exercise_id ||
+            ex.name
+          );
+          if (performed.length > 0) addPerformedExercises(performed);
+        }
       } catch (e) {
         setParsedSummaryData(null);
       }
@@ -856,6 +999,8 @@ const App = ({ isNightMode, setIsNightMode }) => {
             targetTime = 30;
             uiElements = [SMWorkoutLibrary.UIElement.Timer];
             break;
+          case 'Hamstring mobility':
+          case 'Standing hamstring mobility':
           case 'Standing Alternate Toe Touch':
             detectorId = 'StandingAlternateToeTouch';
             scoringType = SMWorkoutLibrary.ScoringType.Reps;
@@ -1091,7 +1236,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
               'clean reps'               // scoreSubtitle
             );
           case 'Lunge':
-            detectorId = 'Lunge';
+            detectorId = 'LungeFront';
             scoringType = SMWorkoutLibrary.ScoringType.Reps;
             targetReps = 12;
             uiElements = [SMWorkoutLibrary.UIElement.RepsCounter, SMWorkoutLibrary.UIElement.Timer];
@@ -1500,6 +1645,130 @@ const App = ({ isNightMode, setIsNightMode }) => {
     }
   };
 
+  // --- Today's Plan Section State ---
+  const [showTodaysPlanModal, setShowTodaysPlanModal] = useState(false);
+  const todaysPlanSections = [
+    {
+      title: 'WARM-UP',
+      color: '#F44336',
+      icon: '🔥',
+      description: 'Perform each for 30 seconds',
+      rest: 'Rest 30 sec',
+      exercises: [
+        'Jumping Jacks',
+        'High Knees',
+        'Glutes Bridge',
+        'Standing Knee Raise (Left)',
+        'Standing Knee Raise (Right)',
+      ],
+    },
+    {
+      title: 'UPPER BODY & CORE',
+      color: '#0097A7',
+      icon: '💪',
+      description: '2 ROUNDS\n40s work | 20s rest | 60s rest between rounds',
+      exercises: [
+        '1. Shoulder Taps',
+        '2. Plank',
+        '3. Push-up (or Knee Push-up)',
+        '4. Shoulder Press (simulate resistance)',
+        '5. Side Plank (20s each)',
+        '6. Crunches',
+        '7. Oblique Crunches (20s each side)',
+        '8. Reverse Sit to Table Top',
+      ],
+    },
+    {
+      title: 'FINISHER',
+      color: '#1976D2',
+      icon: '⚡',
+      description: '30s each | No rest',
+      exercises: [
+        '1. Ski Jumps',
+        '2. Skater Hops',
+      ],
+    },
+    {
+      title: 'COOLDOWN',
+      color: '#FFA000',
+      icon: '🧘',
+      description: 'Hold each stretch 30s',
+      exercises: [
+        '1. Hamstring Mobility',
+        '2. Standing Hamstring Mobility',
+        '3. Jefferson Curl (slow, controlled)',
+      ],
+    },
+  ];
+  const handleStartSection = async (section) => {
+    let defaultDuration = 30;
+    if (section.title === 'UPPER BODY & CORE') defaultDuration = 40;
+    const exercises = section.exercises.map((ex) => {
+      let name = ex.replace(/^\d+\. /, '').replace(/\s*\(.*\)$/, '').trim();
+      if (name === 'Push-up or Knee Push-up' || name === 'Push-up (or Knee Push-up)') name = 'Push-ups';
+      if (name === 'Shoulder Taps') name = 'Shoulder Taps Plank';
+      if (name === 'Standing Knee Raise (Left)') name = 'Standing Knee Raise Left';
+      if (name === 'Standing Knee Raise (Right)') name = 'Standing Knee Raise Right';
+      if (name === 'Hamstring Mobility') name = 'Hamstring mobility';
+      if (name === 'Standing Hamstring') name = 'Standing hamstring mobility';
+      if (name === 'Oblique Crunches') name = 'Oblique Crunches';
+      if (name === 'Reverse Sit to Table Top') name = 'Reverse Sit to Table Top';
+      if (name === 'Side Plank') name = 'Side Plank';
+      if (name === 'Shoulder Press (simulate resistance)') name = 'Shoulder Press';
+      if (name === 'Crunches') name = 'Crunches';
+      if (name === 'Plank') name = 'High Plank';
+      if (name === 'Glutes Bridge') name = 'Glutes Bridge';
+      if (name === 'Ski Jumps') name = 'Ski Jumps';
+      if (name === 'Skater Hops') name = 'Skater Hops';
+      if (name === 'Jefferson Curl (slow, controlled)') name = 'Jefferson curl';
+      if (name === 'Jefferson Curl') name = 'Jefferson curl';
+      const detectorId = exerciseIdMap[name];
+      const scoring = exerciseScoringMap[name];
+      if (!detectorId || !scoring) return null;
+      return new SMWorkoutLibrary.SMAssessmentExercise(
+        detectorId,
+        defaultDuration,
+        detectorId,
+        null,
+        scoring.ui,
+        detectorId,
+        '',
+        new SMWorkoutLibrary.SMScoringParams(
+          scoring.type,
+          0.3,
+          scoring.type === SMWorkoutLibrary.ScoringType.Time ? defaultDuration : null,
+          scoring.type === SMWorkoutLibrary.ScoringType.Reps ? 10 : null,
+          null,
+          null
+        ),
+        '',
+        name,
+        scoring.type === SMWorkoutLibrary.ScoringType.Time ? 'Hold the position' : 'Complete the exercise',
+        scoring.type === SMWorkoutLibrary.ScoringType.Time ? 'Time' : 'Reps',
+        scoring.type === SMWorkoutLibrary.ScoringType.Time ? 'seconds held' : 'clean reps'
+      );
+    }).filter(Boolean);
+    if (exercises.length === 0) {
+      Alert.alert('No exercises found for this section.');
+      return;
+    }
+    const customWorkout = new SMWorkoutLibrary.SMWorkout(
+      section.title.toLowerCase().replace(/\s+/g, '-'),
+      section.title,
+      null,
+      null,
+      exercises,
+      null,
+      null,
+      null
+    );
+    try {
+      await startCustomAssessment(customWorkout, null, true, false);
+    } catch (e) {
+      Alert.alert('Error', e.message);
+    }
+  };
+
   return (
     <SafeAreaView style={[styles.safeArea, isNightMode && { backgroundColor: '#111' }]}>
       <ScrollView contentContainerStyle={[styles.mainContainer, { flexGrow: 1 }, isNightMode && { backgroundColor: '#111' }]}>
@@ -1593,7 +1862,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
                   <View style={[styles.bar, { height: '90%' }]}></View>
                   <View style={[styles.bar, { height: '75%' }]}></View>
                 </View>
-                <Text style={styles.metricCardValue}>88 %</Text>
+                <Text style={styles.metricCardValue}>{lastScorePercent} %</Text>
               </View>
               {/* Hydration Card */}
               <View style={[styles.metricCard, styles.hydrationCard, { borderColor: isNightMode ? '#fff' : '#000', borderWidth: 1 }]}>
@@ -1605,7 +1874,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
                    {/* User Input Line */}
                    <View style={styles.userInputLine}></View>
                 </View>
-                <Text style={styles.metricCardValue}>12</Text>
+                <Text style={styles.metricCardValue}>{performedCount}</Text>
               </View>
               {/* Calories Card */}
               <View style={[styles.metricCard, styles.caloriesCard, { borderColor: isNightMode ? '#fff' : '#000', borderWidth: 1 }]}>
@@ -1614,12 +1883,104 @@ const App = ({ isNightMode, setIsNightMode }) => {
                  <View style={styles.progressBarContainer}>
                    <View style={[styles.progressBarFill, { width: '75%' }]}></View>{/* Example fill percentage */}
                  </View>
-                <Text style={styles.metricCardValue}>88%</Text>
+                <Text style={styles.metricCardValue}>{cleanPercent}%</Text>
               </View>
               {/* Add more metric cards here */}
         </View>
       </ScrollView>
         </View>
+
+        {/* Today's Plan Section */}
+        <Text style={{ fontSize: 26, fontWeight: 'bold', color: isNightMode ? '#fff' : '#111', marginBottom: 10, marginTop: 0 }}>Today's Plan</Text>
+        <View style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          backgroundColor: '#fff',
+          borderColor: '#111',
+          borderWidth: 2,
+          borderRadius: 20,
+          padding: 16,
+          marginHorizontal: 0,
+          width: '100%',
+          alignSelf: 'center',
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.08,
+          shadowRadius: 6,
+          elevation: 2,
+          marginBottom: 24,
+          marginTop: -1,
+          minHeight: 110, // Ensures equal height
+        }}>
+          <View style={{ flex: 1, justifyContent: 'center' }}>
+            <Text style={{ color: '#3b82f6', fontSize: 16, marginBottom: 2 }}>Day 1</Text>
+            <Text style={{ fontWeight: 'bold', fontSize: 20, color: '#222', marginBottom: 2 }}>Full Body Strength</Text>
+            <Text style={{ color: '#789', fontSize: 15 }}>45 min · 5 exercises</Text>
+          </View>
+          <TouchableOpacity
+            style={{
+              width: 70,
+              height: 70,
+              borderRadius: 35,
+              justifyContent: 'center',
+              alignItems: 'center',
+              marginLeft: 10,
+              backgroundColor: 'transparent',
+              overflow: 'hidden',
+            }}
+            onPress={() => setShowTodaysPlanModal(true)}
+          >
+            <Image
+              source={require('../assets/PlayButton2.png')}
+              style={{ width: 40, height: 40 }}
+              resizeMode="contain"
+            />
+          </TouchableOpacity>
+        </View>
+        {/* Today's Plan Modal */}
+        {showTodaysPlanModal && (
+          <Modal
+            visible={showTodaysPlanModal}
+            animationType="slide"
+            transparent={false}
+            onRequestClose={() => setShowTodaysPlanModal(false)}
+          >
+            <SafeAreaView style={{ flex: 1, backgroundColor: isNightMode ? '#111' : '#fff' }}>
+              <View style={{ flex: 1 }}>
+                <ScrollView contentContainerStyle={{ padding: 18, paddingBottom: 40 }}>
+                  {/* Close Button */}
+                  <TouchableOpacity
+                    style={{ position: 'absolute', top: 28, left: 10, zIndex: 10, backgroundColor: isNightMode ? '#222' : '#fff', borderRadius: 18, width: 36, height: 36, justifyContent: 'center', alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.10, shadowRadius: 4, elevation: 2 }}
+                    onPress={() => setShowTodaysPlanModal(false)}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={{ fontSize: 22, color: '#E53935', fontWeight: 'bold', lineHeight: 24 }}>×</Text>
+                  </TouchableOpacity>
+                  <Text style={{ fontSize: 28, fontWeight: 'bold', color: isNightMode ? '#fff' : '#111', marginBottom: 18, marginTop: 24, textAlign: 'left' }}>Today's Plan</Text>
+                  {todaysPlanSections.map((section, idx) => (
+                    <View key={section.title} style={{ marginBottom: 28, backgroundColor: '#fff', borderRadius: 16, padding: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 4, elevation: 1 }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+                        <Text style={{ fontSize: 22, fontWeight: 'bold', color: section.color, marginRight: 8 }}>{section.icon}</Text>
+                        <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#222' }}>{section.title}</Text>
+                      </View>
+                      <Text style={{ color: '#666', fontSize: 15, marginBottom: 6 }}>{section.description}</Text>
+                      {section.rest && <Text style={{ color: '#789', fontSize: 14, marginBottom: 6 }}>Rest: {section.rest}</Text>}
+                      {section.exercises.map((ex, exIdx) => (
+                        <Text key={exIdx} style={{ color: '#222', fontSize: 16, marginBottom: 2 }}>{ex}</Text>
+                      ))}
+                      <TouchableOpacity
+                        style={{ marginTop: 10, backgroundColor: section.color, borderRadius: 8, paddingVertical: 10, alignItems: 'center' }}
+                        onPress={() => handleStartSection(section)}
+                      >
+                        <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 16 }}>Start {section.title}</Text>
+                      </TouchableOpacity>
+                    </View>
+                  ))}
+                </ScrollView>
+              </View>
+            </SafeAreaView>
+          </Modal>
+        )}
 
         {/* New Section: Burn Calories Fast */}
         <PlanSection
@@ -1779,61 +2140,107 @@ const App = ({ isNightMode, setIsNightMode }) => {
         visible={modalVisible}
         animationType="slide"
         onRequestClose={() => setModalVisible(false)}>
-        <View style={{flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(255, 168, 38, 0.10)'}}>
-          <View style={styles.modalContainer}>
-            <ScrollView contentContainerStyle={{padding: 0}}>
-              {parsedSummaryData ? (
-                <View style={{padding: 0}}>
-                  {/* Header */}
-                  <View style={{backgroundColor: '#FFA726', paddingVertical: 22, paddingHorizontal: 18, alignItems: 'center'}}>
-                    <Text style={{color: '#fff', fontSize: 26, fontWeight: 'bold', letterSpacing: 1}}>Workout Summary</Text>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.18)' }}>
+          <LinearGradient
+            colors={["#f5f6fa", "#ffffff"]}
+            start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+            style={{ width: '92%', borderRadius: 24, padding: 24, alignItems: 'center', shadowColor: '#b6c3e0', shadowOpacity: 0.10, shadowRadius: 24, shadowOffset: { width: 0, height: 8 }, elevation: 8, borderWidth: 2, borderColor: '#000' }}
+          >
+            {parsedSummaryData && parsedSummaryData.exercises && parsedSummaryData.exercises.length > 0 ? (() => {
+              // Calculate overall clean % (sum time for time-based, reps for rep-based)
+              let totalClean = 0;
+              let totalPossible = 0;
+              parsedSummaryData.exercises.forEach(ex => {
+                const exerciseName = ex.exercise_info?.pretty_name || ex.exercise_info?.exercise_id || ex.pretty_name || ex.exercise_id || ex.name;
+                const scoring = exerciseScoringMap[exerciseName] || { type: SMWorkoutLibrary.ScoringType.Reps };
+                if (scoring.type === SMWorkoutLibrary.ScoringType.Time) {
+                  totalClean += ex.time_in_position_perfect ?? ex.exercise_info?.time_in_position_perfect ?? 0;
+                  totalPossible += ex.time_in_position ?? ex.exercise_info?.time_in_position ?? 0;
+                } else {
+                  totalClean += ex.reps_performed_perfect ?? ex.exercise_info?.reps_performed_perfect ?? 0;
+                  totalPossible += ex.reps_performed ?? ex.exercise_info?.reps_performed ?? 0;
+                }
+              });
+              const percent = totalPossible > 0 ? Math.round((totalClean / totalPossible) * 100) : 0;
+              // Calculate average score
+              const scores = parsedSummaryData.exercises.map(ex => ex.total_score ?? 0);
+              const avgScore = scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0;
+              if (parsedSummaryData && parsedSummaryData.exercises && parsedSummaryData.exercises.length > 0) {
+                console.log('Summary exercises:', JSON.stringify(parsedSummaryData.exercises, null, 2));
+              }
+              return (
+                <>
+                  {/* Overall Summary: Clean Percentage and Score */}
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', width: '100%', marginBottom: 32, paddingHorizontal: 0, maxWidth: '100%', gap: 16 }}>
+                    {/* Clean Percentage Box */}
+                    <LinearGradient
+                      colors={["#f5f6fa", "#ffffff"]}
+                      start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+                      style={{ flex: 1, borderColor: '#000', borderWidth: 2, borderRadius: 22, padding: 24, alignItems: 'center', justifyContent: 'center', minWidth: 120, maxWidth: 160, minHeight: 160 }}
+                    >
+                      <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#5b7cff', textAlign: 'center' }}>{percent}%</Text>
+                      <Text style={{ fontSize: 14, color: '#7a8ca3', textAlign: 'center', fontWeight: '600' }}>Clean</Text>
+                    </LinearGradient>
+                    {/* Score Box */}
+                    <LinearGradient
+                      colors={["#f5f6fa", "#ffffff"]}
+                      start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+                      style={{ flex: 1, borderColor: '#000', borderWidth: 2, borderRadius: 22, padding: 24, alignItems: 'center', justifyContent: 'center', minWidth: 120, maxWidth: 160, minHeight: 160 }}
+                    >
+                      <Text style={{ color: '#7a8ca3', fontSize: 16, marginBottom: 8, fontWeight: '600', letterSpacing: 0.5 }}>Score</Text>
+                      <Text style={{ color: '#5b7cff', fontSize: 36, fontWeight: 'bold', letterSpacing: 1 }}>{avgScore}</Text>
+                    </LinearGradient>
                   </View>
-                  {/* Exercises */}
-                  <View style={{padding: 20, paddingTop: 20}}>
-                    <Text style={{color: '#FFA726', fontSize: 18, fontWeight: 'bold', marginBottom: 8}}>Exercises</Text>
-                    {parsedSummaryData.exercises && parsedSummaryData.exercises.length > 0 && parsedSummaryData.exercises.map((exercise, index) => (
-                      <View key={index} style={{backgroundColor: '#FFE5B4', borderRadius: 12, padding: 14, marginBottom: 12, shadowColor: '#FFA726', shadowOffset: {width: 0, height: 2}, shadowOpacity: 0.10, shadowRadius: 4, elevation: 2}}>
-                        <Text style={{color: '#FF9800', fontWeight: 'bold', fontSize: 16, marginBottom: 2}}>💪 {exercise.pretty_name || exercise.exercise_id || `Exercise ${index + 1}`}</Text>
-                        <Text style={{color: '#FF9800', fontWeight: 'bold'}}>Score: <Text style={{color: '#333', fontWeight: 'normal'}}>{exercise.total_score !== undefined ? exercise.total_score : 'N/A'}</Text></Text>
-                        <Text style={{color: '#FF9800', fontWeight: 'bold'}}>Reps: <Text style={{color: '#333', fontWeight: 'normal'}}>{exercise.reps_performed !== undefined ? exercise.reps_performed : 0} ({exercise.reps_performed_perfect !== undefined ? exercise.reps_performed_perfect : 0} perfect)</Text></Text>
-                        <Text style={{color: '#FF9800', fontWeight: 'bold'}}>Time: <Text style={{color: '#333', fontWeight: 'normal'}}>{exercise.time_in_position !== undefined ? `${exercise.time_in_position.toFixed(2)}s` : '0.00s'}</Text></Text>
-                        </View>
-                      ))}
-                    </View>
-                  {/* Performance Analysis (optional) */}
-                  {(performanceAnalysis.strengths.length > 0 || performanceAnalysis.improvements.length > 0) && (
-                    <View style={{paddingHorizontal: 20, paddingBottom: 18}}>
-                      <Text style={{color: '#FFA726', fontSize: 18, fontWeight: 'bold', marginBottom: 8}}>Performance Analysis</Text>
-                      {performanceAnalysis.strengths.length > 0 && (
-                        <View style={{marginBottom: 6}}>
-                          <Text style={{color: '#4CAF50', fontWeight: 'bold'}}>✅ Strengths:</Text>
-                          {performanceAnalysis.strengths.map((strength, idx) => (
-                            <Text key={idx} style={{color: '#333', marginLeft: 8}}>{strength}</Text>
-                          ))}
-                        </View>
-                      )}
-                      {performanceAnalysis.improvements.length > 0 && (
-                        <View>
-                          <Text style={{color: '#E53935', fontWeight: 'bold'}}>⚠️ Areas to Improve:</Text>
-                          {performanceAnalysis.improvements.map((improvement, idx) => (
-                            <Text key={idx} style={{color: '#333', marginLeft: 8}}>{improvement}</Text>
-                          ))}
-                        </View>
-                      )}
-                    </View>
-                  )}
-                </View>
-              ) : (
-                <Text style={styles.modalText}>{summaryMessage}</Text>
-              )}
-            </ScrollView>
-            {/* Close Button fixed at the bottom */}
-            <TouchableOpacity
-              style={{backgroundColor: '#FF7043', borderBottomLeftRadius: 22, borderBottomRightRadius: 22, paddingVertical: 18, alignItems: 'center'}}
-              onPress={() => setModalVisible(false)}>
-              <Text style={{color: '#fff', fontWeight: 'bold', fontSize: 18}}>Close</Text>
-            </TouchableOpacity>
-          </View>
+                  {/* List each exercise with clean/total reps or time and score */}
+                  <ScrollView style={{ width: '100%', maxHeight: 400 }} contentContainerStyle={{ alignItems: 'center', paddingBottom: 24 }}>
+                    {parsedSummaryData.exercises.length > 0 ? (
+                      parsedSummaryData.exercises.map((ex, idx) => {
+                        const exerciseName = ex.exercise_info?.pretty_name || ex.exercise_info?.exercise_id || ex.pretty_name || ex.exercise_id || ex.name;
+                        const scoring = exerciseScoringMap[exerciseName] || { type: SMWorkoutLibrary.ScoringType.Reps };
+                        let clean = 0, total = 0, cleanLabel = '', totalLabel = '';
+                        if (scoring.type === SMWorkoutLibrary.ScoringType.Time) {
+                          clean = ex.time_in_position_perfect ?? ex.exercise_info?.time_in_position_perfect ?? 0;
+                          total = ex.time_in_position ?? ex.exercise_info?.time_in_position ?? 0;
+                          cleanLabel = 'Clean Time (s)';
+                          totalLabel = 'Total Time (s)';
+                        } else {
+                          clean = ex.reps_performed_perfect ?? ex.exercise_info?.reps_performed_perfect ?? 0;
+                          total = ex.reps_performed ?? ex.exercise_info?.reps_performed ?? 0;
+                          cleanLabel = 'Clean Reps';
+                          totalLabel = 'Total Reps';
+                        }
+                        return (
+                          <View key={idx} style={{ marginBottom: 24, alignItems: 'center', width: '100%' }}>
+                            <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#222', marginBottom: 8 }}>{formatExerciseName(exerciseName)}</Text>
+                            <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginBottom: 8 }}>
+                              <View style={{ alignItems: 'center', marginHorizontal: 18 }}>
+                                <Text style={{ color: '#888', fontSize: 14 }}>{cleanLabel}</Text>
+                                <Text style={{ color: '#222', fontSize: 22, fontWeight: 'bold' }}>{clean}</Text>
+                              </View>
+                              <View style={{ width: 1, height: 36, backgroundColor: '#000', marginHorizontal: 8 }} />
+                              <View style={{ alignItems: 'center', marginHorizontal: 18 }}>
+                                <Text style={{ color: '#888', fontSize: 14 }}>{totalLabel}</Text>
+                                <Text style={{ color: '#222', fontSize: 22, fontWeight: 'bold' }}>{total}</Text>
+                              </View>
+                            </View>
+                          </View>
+                        );
+                      })
+                    ) : null}
+                  </ScrollView>
+                  {/* Close Button only */}
+                  <TouchableOpacity
+                    style={{ marginTop: 16, backgroundColor: '#f5f5f5', borderRadius: 12, paddingVertical: 14, paddingHorizontal: 36, borderWidth: 1, borderColor: '#eee' }}
+                    onPress={() => setModalVisible(false)}
+                  >
+                    <Text style={{ color: '#222', fontWeight: 'bold', fontSize: 18 }}>Close</Text>
+                  </TouchableOpacity>
+                </>
+              );
+            })() : (
+              <Text style={styles.modalText}>{summaryMessage}</Text>
+            )}
+          </LinearGradient>
         </View>
       </Modal>
 
@@ -2023,10 +2430,17 @@ const App = ({ isNightMode, setIsNightMode }) => {
                               // Special handling for Plank & Core Stability exercises
                               if (["High Plank", "Side Plank", "Tuck Hold", "Plank", "Hamstring mobility", "Standing hamstring mobility", "Side bend", "Standing knee raises", "Jefferson curl"].includes(exercise.name)) {
                                 const scoring = exerciseScoringMap[exercise.name];
+                                // Set correct video instruction names for hamstring exercises
+                                let videoInstruction = exerciseIdMap[exercise.name];
+                                if (exercise.name === "Hamstring mobility") {
+                                  videoInstruction = "HamstringMobility";
+                                } else if (exercise.name === "Standing hamstring mobility") {
+                                  videoInstruction = "StandingHamstringMobility";
+                                }
                                 return new SMWorkoutLibrary.SMAssessmentExercise(
                                   exerciseIdMap[exercise.name],
                                   exercise.duration[selectedLevel],
-                                  exerciseIdMap[exercise.name],
+                                  videoInstruction,
                                   null,
                                   scoring.ui,
                                   exerciseIdMap[exercise.name],
