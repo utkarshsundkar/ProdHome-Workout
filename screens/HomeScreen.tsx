@@ -97,7 +97,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
       level: 'All Levels',
       time: '30-45 min',
       focus: 'Full Body',
-      image: require('../assets/squatf.png'),
+      image: require('../assets/pushups.png'),
       exercises: [
         {
           name: 'Push-ups',
@@ -146,7 +146,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
       level: 'All Levels',
       time: '20-30 min',
       focus: 'Cardio',
-      image: require('../assets/Trial2.png'),
+      image: require('../assets/jumpingjack.png'),
       exercises: [
         {
           name: 'Jumping Jacks',
@@ -235,7 +235,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
             performer: 20,
             advanced: 30
           },
-          image: require('../assets/plankM.png')
+          image: require('../assets/plank1.png')
         },
         {
           name: 'Side Plank',
@@ -249,7 +249,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
             performer: 20,
             advanced: 30
           },
-          image: require('../assets/plankM.png')
+          image: require('../assets/plank1.png')
         },
         {
           name: 'Tuck Hold',
@@ -263,7 +263,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
             performer: 20,
             advanced: 30
           },
-         image: require('../assets/plankM.png')
+         image: require('../assets/plank1.png')
         },
         {
           name: 'Plank',
@@ -277,7 +277,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
             performer: 20,
             advanced: 30
           },
-          image: require('../assets/plankM.png')
+          image: require('../assets/plank1.png')
         }
       ]
     },
@@ -287,7 +287,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
       level: 'Beginner',
       time: '5 min',
       focus: 'Mobility',
-      image: require('../assets/MobileM.png'),
+      image: require('../assets/jefferson.png'),
       exercises: [
         {
           name: 'Hamstring mobility',
@@ -301,7 +301,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
             performer: 20,
             advanced: 30
           },
-          image: require('../assets/MobileM.png')
+          image: require('../assets/jefferson.png')
         },
         {
           name: 'Standing hamstring mobility',
@@ -315,7 +315,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
             performer: 20,
             advanced: 30
           },
-          image: require('../assets/MobileM.png')
+          image: require('../assets/jefferson.png')
         },
         {
           name: 'Side Bend Left',
@@ -329,7 +329,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
             performer: 20,
             advanced: 30
           },
-          image: require('../assets/MobileM.png')
+          image: require('../assets/jefferson.png')
         },
         {
           name: 'Side Bend Right',
@@ -343,7 +343,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
             performer: 20,
             advanced: 30
           },
-          image: require('../assets/MobileM.png')
+          image: require('../assets/jefferson.png')
         },
         {
           name: 'Standing Knee Raise Left',
@@ -357,7 +357,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
             performer: 20,
             advanced: 30
           },
-          image: require('../assets/MobileM.png')
+          image: require('../assets/jefferson.png')
         },
         {
           name: 'Standing Knee Raise Right',
@@ -371,7 +371,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
             performer: 20,
             advanced: 30
           },
-          image: require('../assets/MobileM.png')
+          image: require('../assets/jefferson.png')
         },
         {
           name: 'Jefferson curl',
@@ -385,7 +385,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
             performer: 20,
             advanced: 30
           },
-          image: require('../assets/MobileM.png')
+          image: require('../assets/jefferson.png')
         }
       ]
     },
@@ -395,7 +395,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
       level: 'Beginner',
       time: '8 min',
       focus: 'Cardio',
-      image: require('../assets/JumpingJacks.png'),
+      image: require('../assets/highknees.png'),
       exercises: [
         {
           name: 'Jumping Jacks',
@@ -409,7 +409,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
             performer: 25,
             advanced: 35
           },
-          image: require('../assets/JumpingJacks.png')
+          image: require('../assets/highknees.png')
         },
         {
           name: 'High Knees',
@@ -423,7 +423,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
             performer: 30,
             advanced: 40
           },
-          image: require('../assets/JumpingJacks.png')
+          image: require('../assets/highknees.png')
         },
         {
           name: 'Ski Jumps',
@@ -437,7 +437,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
             performer: 25,
             advanced: 35
           },
-          image: require('../assets/JumpingJacks.png')
+          image: require('../assets/highknees.png')
         },
         {
           name: 'Skater Hops',
@@ -451,7 +451,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
             performer: 25,
             advanced: 35
           },
-          image: require('../assets/JumpingJacks.png')
+          image: require('../assets/highknees.png')
         },
         {
           name: 'Jumps',
@@ -465,7 +465,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
             performer: 25,
             advanced: 35
           },
-          image: require('../assets/JumpingJacks.png')
+          image: require('../assets/highknees.png')
         },
         {
           name: 'Standing Knee Raise Left',
@@ -479,7 +479,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
             performer: 30,
             advanced: 40
           },
-          image: require('../assets/JumpingJacks.png')
+          image: require('../assets/jumpingjack.png')
         },
         {
           name: 'Standing Knee Raise Right',
@@ -493,7 +493,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
             performer: 30,
             advanced: 40
           },
-          image: require('../assets/JumpingJacks.png')
+          image: require('../assets/jumpingjack.png')
         }
       ]
     },
@@ -503,7 +503,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
       level: 'Advanced',
       time: '12 min',
       focus: 'Cardio',
-      image: require('../assets/JumpingJacks.png'),
+      image: require('../assets/jumpingjack.png'),
       exercises: [
         {
           name: 'Jumping Jacks',
@@ -517,7 +517,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
             performer: 25,
             advanced: 35
           },
-          image: require('../assets/JumpingJacks.png')
+          image: require('../assets/jumpingjack.png')
         },
         {
           name: 'High Knees',
@@ -531,7 +531,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
             performer: 30,
             advanced: 40
           },
-          image: require('../assets/JumpingJacks.png')
+          image: require('../assets/jumpingjack.png')
         },
         {
           name: 'Ski Jumps',
@@ -545,7 +545,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
             performer: 25,
             advanced: 35
           },
-          image: require('../assets/JumpingJacks.png')
+          image: require('../assets/jumpingjack.png')
         },
         {
           name: 'Skater Hops',
@@ -559,7 +559,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
             performer: 25,
             advanced: 35
           },
-          image: require('../assets/JumpingJacks.png')
+          image: require('../assets/jumpingjack.png')
         },
         {
           name: 'Lunge',
@@ -573,7 +573,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
             performer: 20,
             advanced: 30
           },
-          image: require('../assets/JumpingJacks.png')
+          image: require('../assets/jumpingjack.png')
         },
         {
           name: 'Jumps',
@@ -587,7 +587,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
             performer: 25,
             advanced: 35
           },
-          image: require('../assets/JumpingJacks.png')
+          image: require('../assets/jumpingjack.png')
         },
         {
           name: 'Standing Knee Raise Left',
@@ -601,7 +601,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
             performer: 30,
             advanced: 40
           },
-          image: require('../assets/JumpingJacks.png')
+          image: require('../assets/jumpingjack.png')
         },
         {
           name: 'Standing Knee Raise Right',
@@ -615,7 +615,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
             performer: 30,
             advanced: 40
           },
-          image: require('../assets/JumpingJacks.png')
+          image: require('../assets/jumpingjack.png')
         }
       ]
     },
@@ -2036,7 +2036,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
             }}
             disabled={showPlanModal}
           >
-            <Image source={require('../assets/plankM.png')} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, width: '100%', height: '100%', resizeMode: 'cover', borderRadius: 15 }} />
+            <Image source={require('../assets/plank1.png')} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, width: '100%', height: '100%', resizeMode: 'cover', borderRadius: 15 }} />
             <View style={{ position: 'absolute', left: 16, bottom: 16 }}>
               <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 22, textShadowColor: 'rgba(0,0,0,0.5)', textShadowOffset: {width: 1, height: 1}, textShadowRadius: 4 }}>Plank & Core Stability</Text>
               <Text style={{ color: '#fff', fontWeight: '600', fontSize: 15, marginTop: 2, textShadowColor: 'rgba(0,0,0,0.4)', textShadowOffset: {width: 1, height: 1}, textShadowRadius: 3 }}>4 mins</Text>
@@ -2052,7 +2052,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
             }}
             disabled={showPlanModal}
           >
-            <Image source={require('../assets/MobileM.png')} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, width: '100%', height: '100%', resizeMode: 'cover', borderRadius: 15 }} />
+            <Image source={require('../assets/jefferson.png')} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, width: '100%', height: '100%', resizeMode: 'cover', borderRadius: 15 }} />
             <View style={{ position: 'absolute', left: 16, bottom: 16 }}>
               <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 22, textShadowColor: 'rgba(0,0,0,0.5)', textShadowOffset: {width: 1, height: 1}, textShadowRadius: 4 }}>Mobility & Stretch</Text>
               <Text style={{ color: '#fff', fontWeight: '600', fontSize: 15, marginTop: 2, textShadowColor: 'rgba(0,0,0,0.4)', textShadowOffset: {width: 1, height: 1}, textShadowRadius: 3 }}>5 mins</Text>
@@ -2076,7 +2076,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
   disabled={showPlanModal}
 >
   <Image
-    source={require('../assets/JumpingJacks.png')}
+    source={require('../assets/highknees.png')}
     style={{
       position: 'absolute',
       top: 0,
@@ -2109,7 +2109,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
                                 disabled={showPlanModal}
                             >
                               <Image
-                                source={require('../assets/JumpingJacks.png')}
+                                source={require('../assets/jumpingjack.png')}
                                 style={{
                                   position: 'absolute',
                                   top: 0,

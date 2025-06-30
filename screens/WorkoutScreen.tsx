@@ -85,14 +85,14 @@ const App = ({ isNightMode, setIsNightMode }) => {
   const [bodyPartsSearch, setBodyPartsSearch] = useState('');
   const bodyParts = [
     { label: 'Shoulders', image: require('../assets/Shoulder.png') },
-    { label: 'Chest', image: require('../assets/Chest.png') },
+    { label: 'Chest', image: require('../assets/pushups.png') },
     { label: 'Thighs', image: require('../assets/Thighs.png') },
-    { label: 'Hips & Glutes', image: require('../assets/Hips.png') },
-    { label: 'Calves', image: require('../assets/Calves.png') },
-    { label: 'Arms', image: require('../assets/Chest.png') },
-    { label: 'Abs', image: require('../assets/Chest.png') },
-    { label: 'Oblique', image: require('../assets/Chest.png') },
-    { label: 'Lower Back', image: require('../assets/Chest.png') },
+    { label: 'Hips & Glutes', image: require('../assets/skijump.png') },
+    { label: 'Calves', image: require('../assets/jumpingjack.png') },
+    { label: 'Arms', image: require('../assets/rstt.png') },
+    { label: 'Abs', image: require('../assets/tuckhold.png') },
+    { label: 'Oblique', image: require('../assets/sideplank.png') },
+    { label: 'Lower Back', image: require('../assets/jefferson.png') },
     // Add more as needed
   ];
   const filteredBodyParts = bodyParts.filter(bp => bp.label.toLowerCase().includes(bodyPartsSearch.toLowerCase()));
@@ -146,92 +146,54 @@ const App = ({ isNightMode, setIsNightMode }) => {
       level: 'All Levels',
       time: '20-30 min',
       focus: 'Chest',
-      image: require('../assets/Chest.png'),
+      image: require('../assets/pushups.png'),
       exercises: [
         {
           name: 'Push-ups',
           duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 10, performer: 20, advanced: 30 },
-          image: require('../assets/Chest.png'),
+          image: require('../assets/pushups.png'),
         },
         {
           name: 'Shoulder Taps Plank',
           duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 20, performer: 30, advanced: 40 },
-          image: require('../assets/Chest.png'),
+          image: require('../assets/pushups.png'),
         },
         {
           name: 'High Plank',
           duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 10, performer: 20, advanced: 30 },
-          image: require('../assets/Chest.png'),
+          image: require('../assets/pushups.png'),
         },
       ]
     },
     {
       id: 'plank-core-stability',
       name: 'Plank & Core Stability',
-      level: 'Beginner',
-      time: '4 min',
-      focus: 'Core',
-      image: require('../assets/plankM.png'),
+      level: 'All Levels',
+      time: '',
+      focus: 'Core & Stability',
+      image: require('../assets/sideplank.png'),
       exercises: [
         {
-          name: 'High Plank',
-          duration: {
-            beginner: 30,
-            performer: 60,
-            advanced: 120
-          },
-          reps: {
-            beginner: 10,
-            performer: 20,
-            advanced: 30
-          },
-          image: require('../assets/plankM.png')
+          name: 'Plank',
+          duration: { beginner: 30, performer: 60, advanced: 120 },
+          reps: { beginner: 1, performer: 1, advanced: 1 },
+          image: require('../assets/sideplank.png'),
         },
         {
           name: 'Side Plank',
-          duration: {
-            beginner: 30,
-            performer: 60,
-            advanced: 120
-          },
-          reps: {
-            beginner: 10,
-            performer: 20,
-            advanced: 30
-          },
-          image: require('../assets/plankM.png')
+          duration: { beginner: 30, performer: 60, advanced: 120 },
+          reps: { beginner: 1, performer: 1, advanced: 1 },
+          image: require('../assets/sideplank.png'),
         },
         {
-          name: 'Tuck Hold',
-          duration: {
-            beginner: 30,
-            performer: 60,
-            advanced: 120
-          },
-          reps: {
-            beginner: 10,
-            performer: 20,
-            advanced: 30
-          },
-          image: require('../assets/plankM.png')
+          name: 'Shoulder Taps Plank',
+          duration: { beginner: 30, performer: 60, advanced: 120 },
+          reps: { beginner: 20, performer: 30, advanced: 40 },
+          image: require('../assets/sideplank.png'),
         },
-        {
-          name: 'Plank',
-          duration: {
-            beginner: 30,
-            performer: 60,
-            advanced: 120
-          },
-          reps: {
-            beginner: 10,
-            performer: 20,
-            advanced: 30
-          },
-          image: require('../assets/plankM.png')
-        }
       ]
     },
     {
@@ -292,7 +254,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
       level: 'Beginner',
       time: '8 min',
       focus: 'Cardio',
-      image: require('../assets/JumpingJacks.png'),
+      image: require('../assets/jumpingjack.png'),
       exercises: [
         {
           name: 'Jumping Jacks',
@@ -306,7 +268,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
             performer: 25,
             advanced: 35
           },
-          image: require('../assets/JumpingJacks.png')
+          image: require('../assets/jumpingjack.png')
         },
         {
           name: 'High Knees',
@@ -320,7 +282,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
             performer: 30,
             advanced: 40
           },
-          image: require('../assets/JumpingJacks.png')
+          image: require('../assets/jumpingjack.png')
         },
         {
           name: 'Ski Jumps',
@@ -334,7 +296,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
             performer: 25,
             advanced: 35
           },
-          image: require('../assets/JumpingJacks.png')
+          image: require('../assets/jumpingjack.png')
         },
         {
           name: 'Skater Hops',
@@ -348,7 +310,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
             performer: 25,
             advanced: 35
           },
-          image: require('../assets/JumpingJacks.png')
+          image: require('../assets/jumpingjack.png')
         },
         {
           name: 'Jumps',
@@ -362,7 +324,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
             performer: 25,
             advanced: 35
           },
-          image: require('../assets/JumpingJacks.png')
+          image: require('../assets/jumpingjack.png')
         }
       ]
     },
@@ -372,7 +334,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
       level: 'Advanced',
       time: '12 min',
       focus: 'Cardio',
-      image: require('../assets/JumpingJacks.png'),
+      image: require('../assets/jumpingjack.png'),
       exercises: [
         {
           name: 'Jumping Jacks',
@@ -386,7 +348,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
             performer: 25,
             advanced: 35
           },
-          image: require('../assets/JumpingJacks.png')
+          image: require('../assets/jumpingjack.png')
         },
         {
           name: 'High Knees',
@@ -400,7 +362,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
             performer: 30,
             advanced: 40
           },
-          image: require('../assets/JumpingJacks.png')
+          image: require('../assets/jumpingjack.png')
         },
         {
           name: 'Ski Jumps',
@@ -414,7 +376,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
             performer: 25,
             advanced: 35
           },
-          image: require('../assets/JumpingJacks.png')
+          image: require('../assets/jumpingjack.png')
         },
         {
           name: 'Skater Hops',
@@ -428,7 +390,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
             performer: 25,
             advanced: 35
           },
-          image: require('../assets/JumpingJacks.png')
+          image: require('../assets/jumpingjack.png')
         },
         {
           name: 'Lunge',
@@ -442,7 +404,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
             performer: 20,
             advanced: 30
           },
-          image: require('../assets/JumpingJacks.png')
+          image: require('../assets/jumpingjack.png')
         },
         {
           name: 'Jumps',
@@ -456,7 +418,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
             performer: 25,
             advanced: 35
           },
-          image: require('../assets/JumpingJacks.png')
+          image: require('../assets/jumpingjack.png')
         },
         
       ]
@@ -507,25 +469,25 @@ const App = ({ isNightMode, setIsNightMode }) => {
       level: 'All Levels',
       time: '',
       focus: 'Upper Body',
-      image: require('../assets/Chest.png'),
+      image: require('../assets/Shoulder.png'),
       exercises: [
         {
           name: 'Push-ups',
           duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 10, performer: 20, advanced: 30 },
-          image: require('../assets/Chest.png'),
+          image: require('../assets/Shoulder.png'),
         },
         {
           name: 'Shoulder Press',
           duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 12, performer: 20, advanced: 30 },
-          image: require('../assets/Chest.png'),
+          image: require('../assets/Shoulder.png'),
         },
         {
           name: 'Shoulder Taps Plank',
           duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 20, performer: 30, advanced: 40 },
-          image: require('../assets/Chest.png'),
+          image: require('../assets/Shoulder.png'),
         },
       ],
     },
@@ -535,7 +497,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
       level: 'All Levels',
       time: '',
       focus: 'Full Body',
-      image: require('../assets/Trial.png'),
+      image: require('../assets/pushups.png'),
       exercises: [
         {
           name: 'Air Squat',
@@ -563,19 +525,19 @@ const App = ({ isNightMode, setIsNightMode }) => {
       level: 'All Levels',
       time: '',
       focus: 'Cardio',
-      image: require('../assets/JumpingJacks.png'),
+      image: require('../assets/highknees.png'),
       exercises: [
         {
           name: 'High Knees',
           duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 20, performer: 30, advanced: 40 },
-          image: require('../assets/JumpingJacks.png'),
+          image: require('../assets/highknees.png'),
         },
         {
           name: 'Skater Hops',
           duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 15, performer: 25, advanced: 35 },
-          image: require('../assets/JumpingJacks.png'),
+          image: require('../assets/jumpingjack.png'),
         },
         {
           name: 'Shoulder Taps Plank',
@@ -587,7 +549,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
           name: 'Air Squat',
           duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 15, performer: 25, advanced: 35 },
-          image: require('../assets/JumpingJacks.png'),
+          image: require('../assets/jumpingjack.png'),
         },
       ],
     },
@@ -597,7 +559,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
       level: 'All Levels',
       time: '',
       focus: 'Cardio',
-      image: require('../assets/JumpingJacks.png'),
+      image: require('../assets/skijump.png'),
       exercises: [
         {
           name: 'High Knees',
@@ -609,19 +571,19 @@ const App = ({ isNightMode, setIsNightMode }) => {
           name: 'Jumping Jacks',
           duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 15, performer: 25, advanced: 35 },
-          image: require('../assets/JumpingJacks.png'),
+          image: require('../assets/jumpingjack.png'),
         },
         {
           name: 'Skater Hops',
           duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 15, performer: 25, advanced: 35 },
-          image: require('../assets/JumpingJacks.png'),
+          image: require('../assets/jumpingjack.png'),
         },
         {
           name: 'Jumps',
           duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 15, performer: 25, advanced: 35 },
-          image: require('../assets/JumpingJacks.png'),
+          image: require('../assets/jumpingjack.png'),
         },
       ],
     },
@@ -631,31 +593,31 @@ const App = ({ isNightMode, setIsNightMode }) => {
       level: 'All Levels',
       time: '',
       focus: 'Cardio',
-      image: require('../assets/JumpingJacks.png'),
+      image: require('../assets/jumpingjack.png'),
       exercises: [
         {
           name: 'Jumping Jacks',
           duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 15, performer: 25, advanced: 35 },
-          image: require('../assets/JumpingJacks.png'),
+          image: require('../assets/jumpingjack.png'),
         },
         {
           name: 'Oblique Crunches',
           duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 20, performer: 30, advanced: 40 },
-          image: require('../assets/JumpingJacks.png'),
+          image: require('../assets/jumpingjack.png'),
         },
         {
           name: 'High Knees',
           duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 20, performer: 30, advanced: 40 },
-          image: require('../assets/JumpingJacks.png'),
+          image: require('../assets/jumpingjack.png'),
         },
         {
           name: 'Crunches',
           duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 15, performer: 25, advanced: 35 },
-          image: require('../assets/JumpingJacks.png'),
+          image: require('../assets/jumpingjack.png'),
         },
       ],
     },
@@ -665,31 +627,31 @@ const App = ({ isNightMode, setIsNightMode }) => {
       level: 'All Levels',
       time: '',
       focus: 'Hips & Glutes',
-      image: require('../assets/Hips.png'),
+      image: require('../assets/skijump.png'),
       exercises: [
         {
           name: 'Glutes Bridge',
           duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 12, performer: 20, advanced: 30 },
-          image: require('../assets/Hips.png'),
+          image: require('../assets/skijump.png'),
         },
         {
           name: 'Skater Hops',
           duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 15, performer: 25, advanced: 35 },
-          image: require('../assets/Hips.png'),
+          image: require('../assets/skijump.png'),
         },
         {
           name: 'Hamstring mobility',
           duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 10, performer: 20, advanced: 30 },
-          image: require('../assets/Hips.png'),
+          image: require('../assets/skijump.png'),
         },
         {
           name: 'Standing hamstring mobility',
           duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 10, performer: 20, advanced: 30 },
-          image: require('../assets/Hips.png'),
+          image: require('../assets/skijump.png'),
         },
       ],
     },
@@ -699,19 +661,19 @@ const App = ({ isNightMode, setIsNightMode }) => {
       level: 'All Levels',
       time: '',
       focus: 'Calves',
-      image: require('../assets/Calves.png'),
+      image: require('../assets/jumpingjack.png'),
       exercises: [
         {
           name: 'Jumping Jacks',
           duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 15, performer: 25, advanced: 35 },
-          image: require('../assets/Calves.png'),
+          image: require('../assets/jumpingjack.png'),
         },
         {
           name: 'High Knees',
           duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 20, performer: 30, advanced: 40 },
-          image: require('../assets/Calves.png'),
+          image: require('../assets/jumpingjack.png'),
         },
       ],
     },
@@ -721,25 +683,19 @@ const App = ({ isNightMode, setIsNightMode }) => {
       level: 'All Levels',
       time: '',
       focus: 'Arms',
-      image: require('../assets/Chest.png'),
+      image: require('../assets/rstt.png'),
       exercises: [
         {
-          name: 'Push-ups',
+          name: 'Bicep Curls',
+          duration: { beginner: 30, performer: 60, advanced: 120 },
+          reps: { beginner: 12, performer: 20, advanced: 30 },
+          image: require('../assets/rstt.png'),
+        },
+        {
+          name: 'Tricep Dips',
           duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 10, performer: 20, advanced: 30 },
-          image: require('../assets/Chest.png'),
-        },
-        {
-          name: 'Shoulder Press',
-          duration: { beginner: 30, performer: 60, advanced: 120 },
-          reps: { beginner: 12, performer: 20, advanced: 30 },
-          image: require('../assets/Chest.png'),
-        },
-        {
-          name: 'Reverse Sit to Table Top',
-          duration: { beginner: 30, performer: 60, advanced: 120 },
-          reps: { beginner: 12, performer: 20, advanced: 30 },
-          image: require('../assets/Chest.png'),
+          image: require('../assets/rstt.png'),
         },
       ],
     },
@@ -749,49 +705,19 @@ const App = ({ isNightMode, setIsNightMode }) => {
       level: 'All Levels',
       time: '',
       focus: 'Abs',
-      image: require('../assets/Chest.png'),
+      image: require('../assets/tuckhold.png'),
       exercises: [
         {
           name: 'Crunches',
           duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 15, performer: 25, advanced: 35 },
-          image: require('../assets/Chest.png'),
+          image: require('../assets/tuckhold.png'),
         },
         {
           name: 'Tuck Hold',
           duration: { beginner: 30, performer: 60, advanced: 120 },
-          reps: { beginner: 10, performer: 20, advanced: 30 },
-          image: require('../assets/Chest.png'),
-        },
-        {
-          name: 'Shoulder Taps Plank',
-          duration: { beginner: 30, performer: 60, advanced: 120 },
-          reps: { beginner: 20, performer: 30, advanced: 40 },
-          image: require('../assets/Chest.png'),
-        },
-        {
-          name: 'Push-ups',
-          duration: { beginner: 30, performer: 60, advanced: 120 },
-          reps: { beginner: 10, performer: 20, advanced: 30 },
-          image: require('../assets/Chest.png'),
-        },
-        {
-          name: 'Standing Knee Raise Left',
-          duration: { beginner: 30, performer: 60, advanced: 120 },
-          reps: { beginner: 20, performer: 30, advanced: 40 },
-          image: require('../assets/Chest.png'),
-        },
-        {
-          name: 'Standing Knee Raise Right',
-          duration: { beginner: 30, performer: 60, advanced: 120 },
-          reps: { beginner: 20, performer: 30, advanced: 40 },
-          image: require('../assets/Chest.png'),
-        },
-        {
-          name: 'Jumping Jacks',
-          duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 15, performer: 25, advanced: 35 },
-          image: require('../assets/Chest.png'),
+          image: require('../assets/tuckhold.png'),
         },
       ],
     },
@@ -801,49 +727,49 @@ const App = ({ isNightMode, setIsNightMode }) => {
       level: 'All Levels',
       time: '',
       focus: 'Lower Back',
-      image: require('../assets/Chest.png'),
+      image: require('../assets/jefferson.png'),
       exercises: [
         {
           name: 'Glutes Bridge',
           duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 12, performer: 20, advanced: 30 },
-          image: require('../assets/Chest.png'),
+          image: require('../assets/jefferson.png'),
         },
         {
           name: 'Jefferson curl',
           duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 10, performer: 20, advanced: 30 },
-          image: require('../assets/Chest.png'),
+          image: require('../assets/jefferson.png'),
         },
         {
           name: 'High Plank',
           duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 10, performer: 20, advanced: 30 },
-          image: require('../assets/Chest.png'),
+          image: require('../assets/jefferson.png'),
         },
         {
           name: 'Side Plank',
           duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 10, performer: 20, advanced: 30 },
-          image: require('../assets/Chest.png'),
+          image: require('../assets/jefferson.png'),
         },
         {
           name: 'Hamstring mobility',
           duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 10, performer: 20, advanced: 30 },
-          image: require('../assets/Chest.png'),
+          image: require('../assets/jefferson.png'),
         },
         {
           name: 'Standing hamstring mobility',
           duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 10, performer: 20, advanced: 30 },
-          image: require('../assets/Chest.png'),
+          image: require('../assets/jefferson.png'),
         },
         {
           name: 'Reverse Sit to Table Top',
           duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 12, performer: 20, advanced: 30 },
-          image: require('../assets/Chest.png'),
+          image: require('../assets/jefferson.png'),
         },
       ],
     },
@@ -853,26 +779,26 @@ const App = ({ isNightMode, setIsNightMode }) => {
       level: 'All Levels',
       time: '',
       focus: 'Core & Abs',
-      image: require('../assets/Trial.png'),
+      image: require('../assets/tuckhold.png'),
       exercises: [
         {
           name: 'Tuck Hold',
           duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 15, performer: 25, advanced: 35 },
-          image: require('../assets/Trial.png'),
+          image: require('../assets/tuckhold.png'),
         },
         {
           name: 'Oblique Crunches',
           duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 20, performer: 30, advanced: 40 },
-          image: require('../assets/Trial.png'),
+          image: require('../assets/tuckhold.png'),
         },
         {
           name: 'Side Plank',
           id: 'PlankSideLowStatic',
           duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 12, performer: 20, advanced: 30 },
-          image: require('../assets/Trial.png'),
+          image: require('../assets/tuckhold.png'),
         },
       ],
     },
@@ -882,35 +808,35 @@ const App = ({ isNightMode, setIsNightMode }) => {
       level: 'All Levels',
       time: '',
       focus: 'Core & Abs',
-      image: require('../assets/Trial.png'),
+      image: require('../assets/sideplank.png'),
       exercises: [
         {
           name: 'Crunches',
           id: 'Crunches',
           duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 15, performer: 25, advanced: 35 },
-          image: require('../assets/Trial.png'),
+          image: require('../assets/sideplank.png'),
         },
         {
           name: 'Tuck Hold',
           id: 'TuckHold',
           duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 15, performer: 25, advanced: 35 },
-          image: require('../assets/Trial.png'),
+          image: require('../assets/sideplank.png'),
         },
         {
           name: 'Oblique Crunches',
           id: 'StandingObliqueCrunches',
           duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 20, performer: 30, advanced: 40 },
-          image: require('../assets/Trial.png'),
+          image: require('../assets/sideplank.png'),
         },
         {
           name: 'Side Plank',
           id: 'PlankSideLowStatic',
           duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 12, performer: 20, advanced: 30 },
-          image: require('../assets/Trial.png'),
+          image: require('../assets/sideplank.png'),
         },
       ],
     },
@@ -920,28 +846,28 @@ const App = ({ isNightMode, setIsNightMode }) => {
       level: 'All Levels',
       time: '3 Rounds',
       focus: 'Athletic Performance',
-      image: require('../assets/JumpingJacks.png'),
+      image: require('../assets/skijump.png'),
       exercises: [
         {
           name: 'Jumps',
           id: 'Jumps',
           duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 15, performer: 25, advanced: 35 },
-          image: require('../assets/JumpingJacks.png'),
+          image: require('../assets/skijump.png'),
         },
         {
           name: 'Ski Jumps',
           id: 'SkiJumps',
           duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 20, performer: 30, advanced: 40 },
-          image: require('../assets/JumpingJacks.png'),
+          image: require('../assets/skijump.png'),
         },
         {
           name: 'High Knees',
           id: 'HighKnees',
           duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 20, performer: 30, advanced: 40 },
-          image: require('../assets/JumpingJacks.png'),
+          image: require('../assets/skijump.png'),
         },
       ],
     },
@@ -951,35 +877,35 @@ const App = ({ isNightMode, setIsNightMode }) => {
       level: 'All Levels',
       time: '',
       focus: 'Athletic Performance',
-      image: require('../assets/Trial.png'),
+      image: require('../assets/kneesideview.png'),
       exercises: [
         {
           name: 'Side Plank',
           id: 'PlankSideLowStatic',
           duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 12, performer: 20, advanced: 30 },
-          image: require('../assets/Trial.png'),
+          image: require('../assets/kneesideview.png'),
         },
         {
           name: 'Standing Knee Raise Left',
           id: 'StandingKneeRaiseLeft',
           duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 20, performer: 30, advanced: 40 },
-          image: require('../assets/Trial.png'),
+          image: require('../assets/kneesideview.png'),
         },
         {
           name: 'Standing Knee Raise Right',
           id: 'StandingKneeRaiseRight',
           duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 20, performer: 30, advanced: 40 },
-          image: require('../assets/Trial.png'),
+          image: require('../assets/kneesideview.png'),
         },
         {
           name: 'High Plank',
           id: 'PlankHighStatic',
           duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 10, performer: 20, advanced: 30 },
-          image: require('../assets/Trial.png'),
+          image: require('../assets/kneesideview.png'),
         },
       ],
     },
@@ -989,35 +915,35 @@ const App = ({ isNightMode, setIsNightMode }) => {
       level: 'All Levels',
       time: '',
       focus: 'Athletic Performance',
-      image: require('../assets/Trial.png'),
+      image: require('../assets/pushups.png'),
       exercises: [
         {
           name: 'Skater Hops',
           id: 'SkaterHops',
           duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 15, performer: 25, advanced: 35 },
-          image: require('../assets/Trial.png'),
+          image: require('../assets/pushups.png'),
         },
         {
           name: 'Push-ups',
           id: 'PushupRegular',
           duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 10, performer: 20, advanced: 30 },
-          image: require('../assets/Trial.png'),
+          image: require('../assets/pushups.png'),
         },
         {
           name: 'Lunge',
           id: 'Lunge',
           duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 12, performer: 20, advanced: 30 },
-          image: require('../assets/Trial.png'),
+          image: require('../assets/pushups.png'),
         },
         {
           name: 'High Plank',
           id: 'PlankHighStatic',
           duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 10, performer: 20, advanced: 30 },
-          image: require('../assets/Trial.png'),
+          image: require('../assets/pushups.png'),
         },
       ],
     },
@@ -1027,42 +953,42 @@ const App = ({ isNightMode, setIsNightMode }) => {
       level: 'All Levels',
       time: '',
       focus: 'Mobility & Flexibility',
-      image: require('../assets/Trial.png'),
+      image: require('../assets/jefferson.png'),
       exercises: [
         {
           name: 'Jefferson Curl',
           id: 'JeffersonCurlRight',
           duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 10, performer: 20, advanced: 30 },
-          image: require('../assets/Trial.png'),
+          image: require('../assets/jefferson.png'),
         },
         {
           name: 'Standing Hamstring Mobility',
           id: 'StandingAlternateToeTouch',
           duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 10, performer: 20, advanced: 30 },
-          image: require('../assets/Trial.png'),
+          image: require('../assets/jefferson.png'),
         },
         {
           name: 'Hamstring Mobility',
           id: 'StandingAlternateToeTouch',
           duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 10, performer: 20, advanced: 30 },
-          image: require('../assets/Trial.png'),
+          image: require('../assets/jefferson.png'),
         },
         {
           name: 'Side Bend Left',
           id: 'StandingSideBendLeft',
           duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 12, performer: 20, advanced: 30 },
-          image: require('../assets/Trial.png'),
+          image: require('../assets/jefferson.png'),
         },
         {
           name: 'Side Bend Right',
           id: 'StandingSideBendRight',
           duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 12, performer: 20, advanced: 30 },
-          image: require('../assets/Trial.png'),
+          image: require('../assets/jefferson.png'),
         },
       ],
     },
@@ -1072,42 +998,42 @@ const App = ({ isNightMode, setIsNightMode }) => {
       level: 'All Levels',
       time: '',
       focus: 'Mobility & Flexibility',
-      image: require('../assets/Trial.png'),
+      image: require('../assets/kneesideview.png'),
       exercises: [
         {
           name: 'Reverse Sit to Table Top',
           id: 'ReverseSitToTableTop',
           duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 12, performer: 20, advanced: 30 },
-          image: require('../assets/Trial.png'),
+          image: require('../assets/kneesideview.png'),
         },
         {
           name: 'Standing Knee Raise Left',
           id: 'StandingKneeRaiseLeft',
           duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 12, performer: 20, advanced: 30 },
-          image: require('../assets/Trial.png'),
+          image: require('../assets/kneesideview.png'),
         },
         {
           name: 'Standing Knee Raise Right',
           id: 'StandingKneeRaiseRight',
           duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 12, performer: 20, advanced: 30 },
-          image: require('../assets/Trial.png'),
+          image: require('../assets/kneesideview.png'),
         },
         {
           name: 'Side Bend Left',
           id: 'StandingSideBendLeft',
           duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 12, performer: 20, advanced: 30 },
-          image: require('../assets/Trial.png'),
+          image: require('../assets/kneesideview.png'),
         },
         {
           name: 'Side Bend Right',
           id: 'StandingSideBendRight',
           duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 12, performer: 20, advanced: 30 },
-          image: require('../assets/Trial.png'),
+          image: require('../assets/kneesideview.png'),
         },
       ],
     },
@@ -1117,35 +1043,35 @@ const App = ({ isNightMode, setIsNightMode }) => {
       level: 'All Levels',
       time: '',
       focus: 'Mobility & Flexibility',
-      image: require('../assets/Trial.png'),
+      image: require('../assets/Hips.png'),
       exercises: [
         {
           name: 'Jefferson Curl',
           id: 'JeffersonCurlRight',
           duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 10, performer: 20, advanced: 30 },
-          image: require('../assets/Trial.png'),
+          image: require('../assets/Hips.png'),
         },
         {
           name: 'Glutes Bridge',
           id: 'GlutesBridge',
           duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 12, performer: 20, advanced: 30 },
-          image: require('../assets/Trial.png'),
+          image: require('../assets/Hips.png'),
         },
         {
           name: 'Hamstring Mobility',
           id: 'StandingAlternateToeTouch',
           duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 10, performer: 20, advanced: 30 },
-          image: require('../assets/Trial.png'),
+          image: require('../assets/Hips.png'),
         },
         {
           name: 'Overhead Squat',
           id: 'SquatRegularOverheadStatic',
           duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 15, performer: 25, advanced: 35 },
-          image: require('../assets/Trial.png'),
+          image: require('../assets/Hips.png'),
         },
       ],
     },
@@ -1155,14 +1081,14 @@ const App = ({ isNightMode, setIsNightMode }) => {
       level: 'All Levels',
       time: '',
       focus: 'Glutes & Lower Body',
-      image: require('../assets/Trial.png'),
+      image: require('../assets/sidelunge.png'),
       exercises: [
         {
           name: 'Glutes Bridge',
           id: 'GlutesBridge',
           duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 12, performer: 20, advanced: 30 },
-          image: require('../assets/Trial.png'),
+          image: require('../assets/sidelunge.png'),
         },
         {
           name: 'Side Lunge Left',
@@ -1181,14 +1107,14 @@ const App = ({ isNightMode, setIsNightMode }) => {
           id: 'Lunge',
           duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 12, performer: 20, advanced: 30 },
-          image: require('../assets/Trial.png'),
+          image: require('../assets/sidelunge.png'),
         },
         {
           name: 'Air Squat',
           id: 'AirSquat',
           duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 15, performer: 25, advanced: 35 },
-          image: require('../assets/Trial.png'),
+          image: require('../assets/sidelunge.png'),
         },
       ],
     },
@@ -1198,36 +1124,35 @@ const App = ({ isNightMode, setIsNightMode }) => {
       level: 'All Levels',
       time: '',
       focus: 'Glutes & Legs',
-      image: require('../assets/Trial.png'),
+      image: require('../assets/highknees.png'),
       exercises: [
-       
         {
           name: 'Skater Hops',
           id: 'SkaterHops',
           duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 15, performer: 25, advanced: 35 },
-          image: require('../assets/Trial.png'),
+          image: require('../assets/highknees.png'),
         },
         {
           name: 'Standing Knee Raise Left',
           id: 'StandingKneeRaiseLeft',
           duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 20, performer: 30, advanced: 40 },
-          image: require('../assets/Trial.png'),
+          image: require('../assets/highknees.png'),
         },
         {
           name: 'Standing Knee Raise Right',
           id: 'StandingKneeRaiseRight',
           duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 20, performer: 30, advanced: 40 },
-          image: require('../assets/Trial.png'),
+          image: require('../assets/highknees.png'),
         },
         {
           name: 'High Knees',
           id: 'HighKnees',
           duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 20, performer: 30, advanced: 40 },
-          image: require('../assets/Trial.png'),
+          image: require('../assets/highknees.png'),
         },
       ],
     },
@@ -1237,42 +1162,42 @@ const App = ({ isNightMode, setIsNightMode }) => {
       level: 'All Levels',
       time: '',
       focus: 'Glutes & Legs',
-      image: require('../assets/Trial.png'),
+      image: require('../assets/rstt.png'),
       exercises: [
         {
           name: 'Glutes Bridge',
           id: 'GlutesBridge',
           duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 12, performer: 20, advanced: 30 },
-          image: require('../assets/Trial.png'),
+          image: require('../assets/rstt.png'),
         },
         {
           name: 'Oblique Crunches',
           id: 'StandingObliqueCrunches',
           duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 20, performer: 30, advanced: 40 },
-          image: require('../assets/Trial.png'),
+          image: require('../assets/rstt.png'),
         },
         {
           name: 'Standing Knee Raise Left',
           id: 'StandingKneeRaiseLeft',
           duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 20, performer: 30, advanced: 40 },
-          image: require('../assets/Trial.png'),
+          image: require('../assets/rstt.png'),
         },
         {
           name: 'Standing Knee Raise Right',
           id: 'StandingKneeRaiseRight',
           duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 20, performer: 30, advanced: 40 },
-          image: require('../assets/Trial.png'),
+          image: require('../assets/rstt.png'),
         },
         {
           name: 'Reverse Sit to Table Top',
           id: 'ReverseSitToTableTop',
           duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 12, performer: 20, advanced: 30 },
-          image: require('../assets/Trial.png'),
+          image: require('../assets/rstt.png'),
         },
       ],
     },
@@ -3115,7 +3040,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
             justifyContent: 'center',
           }}>
             <Image
-              source={require('../assets/Chest.png')}
+              source={require('../assets/pushups.png')}
               style={{ width: '100%', height: '100%', borderRadius: 24 }}
               resizeMode="cover"
             />
@@ -3168,7 +3093,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
             justifyContent: 'center',
           }}>
             <Image
-              source={require('../assets/Hips.png')}
+              source={require('../assets/skijump.png')}
               style={{ width: '100%', height: '100%', borderRadius: 24 }}
               resizeMode="cover"
             />
@@ -3204,7 +3129,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
                 if (thighsPlan) {
                   setSelectedPlan(thighsPlan);
                   setPlanModalTitleOverride('Leg Day Ignite');
-                  setPlanModalImageOverride(require('../assets/Trial.png'));
+                  setPlanModalImageOverride(require('../assets/Hips.png'));
                   setShowPlanModal(true);
                 }
               }}
@@ -3223,7 +3148,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
                 elevation: 2,
               }}>
                 <Image
-                  source={require('../assets/Trial.png')} // Replace with your image path
+                  source={require('../assets/Hips.png')} // Replace with your image path
                   style={{ width: '100%', height: '100%' }}
                   resizeMode="cover"
                 />
@@ -3253,7 +3178,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
                 if (upperBodyPlan) {
                   setSelectedPlan(upperBodyPlan);
                   setPlanModalTitleOverride('Upper Body Strength');
-                  setPlanModalImageOverride(require('../assets/Chest.png'));
+                  setPlanModalImageOverride(require('../assets/Shoulder.png'));
                   setShowPlanModal(true);
                 }
               }}
@@ -3272,7 +3197,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
                 elevation: 2,
               }}>
                 <Image
-                  source={require('../assets/Chest.png')} // Replace with your image path
+                  source={require('../assets/Shoulder.png')} // Replace with your image path
                   style={{ width: '100%', height: '100%' }}
                   resizeMode="cover"
                 />
@@ -3302,7 +3227,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
                 if (fullBodyPlan) {
                   setSelectedPlan(fullBodyPlan);
                   setPlanModalTitleOverride('Full-Body Builder');
-                  setPlanModalImageOverride(require('../assets/Trial.png'));
+                  setPlanModalImageOverride(require('../assets/pushups.png'));
                   setShowPlanModal(true);
                 }
               }}
@@ -3321,7 +3246,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
                 elevation: 2,
               }}>
                 <Image
-                  source={require('../assets/Trial.png')} // Replace with your image path
+                  source={require('../assets/pushups.png')} // Replace with your image path
                   style={{ width: '100%', height: '100%' }}
                   resizeMode="cover"
                 />
@@ -3366,7 +3291,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
                 if (hiitPlan) {
                   setSelectedPlan(hiitPlan);
                   setPlanModalTitleOverride('HIIT Express');
-                  setPlanModalImageOverride(require('../assets/JumpingJacks.png'));
+                  setPlanModalImageOverride(require('../assets/highknees.png'));
                   setShowPlanModal(true);
                 }
               }}
@@ -3385,7 +3310,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
                 elevation: 2,
               }}>
                 <Image
-                  source={require('../assets/JumpingJacks.png')} // Replace with your image path
+                  source={require('../assets/highknees.png')} // Replace with your image path
                   style={{ width: '100%', height: '100%' }}
                   resizeMode="cover"
                 />
@@ -3415,7 +3340,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
                 if (cardioPlan) {
                   setSelectedPlan(cardioPlan);
                   setPlanModalTitleOverride('Cardio Crusher');
-                  setPlanModalImageOverride(require('../assets/JumpingJacks.png'));
+                  setPlanModalImageOverride(require('../assets/skijump.png'));
                   setShowPlanModal(true);
                 }
               }}
@@ -3434,7 +3359,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
                 elevation: 2,
               }}>
                 <Image
-                  source={require('../assets/JumpingJacks.png')} // Replace with your image path
+                  source={require('../assets/skijump.png')} // Replace with your image path
                   style={{ width: '100%', height: '100%' }}
                   resizeMode="cover"
                 />
@@ -3464,7 +3389,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
                 if (sweatCircuitPlan) {
                   setSelectedPlan(sweatCircuitPlan);
                   setPlanModalTitleOverride('Sweat Circuit');
-                  setPlanModalImageOverride(require('../assets/JumpingJacks.png'));
+                  setPlanModalImageOverride(require('../assets/jumpingjack.png'));
                   setShowPlanModal(true);
                 }
               }}
@@ -3483,7 +3408,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
                 elevation: 2,
               }}>
                 <Image
-                  source={require('../assets/JumpingJacks.png')} // Replace with your image path
+                  source={require('../assets/jumpingjack.png')} // Replace with your image path
                   style={{ width: '100%', height: '100%' }}
                   resizeMode="cover"
                 />
