@@ -931,11 +931,11 @@ const App = ({ isNightMode, setIsNightMode, inFocusMode, setInFocusMode }) => {
       setModalVisible(false);
       setParsedSummaryData(null);
       setTimeout(() => {
-        setSummaryMessage(summary);
+    setSummaryMessage(summary);
         let parsed: { exercises?: any[] } | null = null;
-        try {
-          parsed = JSON.parse(summary);
-        } catch (e) {
+      try {
+        parsed = JSON.parse(summary);
+      } catch (e) {
           parsed = null;
         }
         setParsedSummaryData(parsed);
@@ -960,8 +960,8 @@ const App = ({ isNightMode, setIsNightMode, inFocusMode, setInFocusMode }) => {
           );
           if (performed.length > 0) addPerformedExercises(performed);
           if (performed.length > 0) DeviceEventEmitter.emit('performedExercisesUpdated');
-        }
-        setModalVisible(true);
+      }
+      setModalVisible(true);
         if (parsed && parsed.exercises) {
           console.log('Summary after assessment:', parsed.exercises.map((e) => ({
             name: e.pretty_name || e.exercise_id,
@@ -2636,8 +2636,8 @@ const App = ({ isNightMode, setIsNightMode, inFocusMode, setInFocusMode }) => {
                           <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
                             <View style={[styles.planPlayIcon, { backgroundColor: iconColor }]}> 
                               <Text style={styles.planPlayIconText}>▶</Text>
-                            </View>
-                            <View>
+                          </View>
+                          <View>
                               <Text style={[styles.planExerciseName, { color: isNightMode ? '#fff' : '#000' }]}>{ex.name}</Text>
                               <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
                                 <Text style={{ color: iconColor, fontSize: 14, marginRight: 6 }}>🕒</Text>
@@ -2645,7 +2645,7 @@ const App = ({ isNightMode, setIsNightMode, inFocusMode, setInFocusMode }) => {
                                   {formatDuration(ex.duration[selectedLevel])}
                                 </Text>
                           </View>
-                            </View>
+                        </View>
                           </View>
                           {/* Arc progress bar above progress bar and reps/time */}
                           <View style={{ alignItems: 'center', marginBottom: 4 }}>

@@ -29,10 +29,10 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		00E356EE1AD99517003FC87E /* RNSMKitUIDemoAppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RNSMKitUIDemoAppTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		00E356EE1AD99517003FC87E /* ArthleteTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ArthleteTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		00E356F11AD99517003FC87E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		00E356F21AD99517003FC87E /* RNSMKitUIDemoAppTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RNSMKitUIDemoAppTests.m; sourceTree = "<group>"; };
-		13B07F961A680F5B00A75B9A /* RNSMKitUIDemoApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RNSMKitUIDemoApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		13B07F961A680F5B00A75B9A /* Arthlete.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Arthlete.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FAF1A68108700A75B9A /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AppDelegate.h; path = RNSMKitUIDemoApp/AppDelegate.h; sourceTree = "<group>"; };
 		13B07FB01A68108700A75B9A /* AppDelegate.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = AppDelegate.mm; path = RNSMKitUIDemoApp/AppDelegate.mm; sourceTree = "<group>"; };
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = RNSMKitUIDemoApp/Images.xcassets; sourceTree = "<group>"; };
@@ -42,7 +42,7 @@
 		174E2A83CDA3573F989376DF /* Pods-RNSMKitUIDemoApp.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RNSMKitUIDemoApp.release.xcconfig"; path = "Target Support Files/Pods-RNSMKitUIDemoApp/Pods-RNSMKitUIDemoApp.release.xcconfig"; sourceTree = "<group>"; };
 		1A284D931352CA0042EDA23C /* Pods-RNSMKitUIDemoApp-RNSMKitUIDemoAppTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RNSMKitUIDemoApp-RNSMKitUIDemoAppTests.debug.xcconfig"; path = "Target Support Files/Pods-RNSMKitUIDemoApp-RNSMKitUIDemoAppTests/Pods-RNSMKitUIDemoApp-RNSMKitUIDemoAppTests.debug.xcconfig"; sourceTree = "<group>"; };
 		20F3CE9D54447F32D2D6A24E /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = RNSMKitUIDemoApp/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
-		31576458889540F982ECBBE5 /* Lexend.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = Lexend.ttf; path = ../assets/fonts/Lexend.ttf; sourceTree = "<group>"; };
+		31576458889540F982ECBBE5 /* Lexend.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Lexend.ttf; path = ../assets/fonts/Lexend.ttf; sourceTree = "<group>"; };
 		58E0FE06E0058CA340229CCF /* Pods-RNSMKitUIDemoApp-RNSMKitUIDemoAppTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RNSMKitUIDemoApp-RNSMKitUIDemoAppTests.release.xcconfig"; path = "Target Support Files/Pods-RNSMKitUIDemoApp-RNSMKitUIDemoAppTests/Pods-RNSMKitUIDemoApp-RNSMKitUIDemoAppTests.release.xcconfig"; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = RNSMKitUIDemoApp/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		B779B8877C25E9554126E1DA /* Pods_RNSMKitUIDemoApp_RNSMKitUIDemoAppTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_RNSMKitUIDemoApp_RNSMKitUIDemoAppTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -109,7 +109,6 @@
 				31576458889540F982ECBBE5 /* Lexend.ttf */,
 			);
 			name = Resources;
-			path = "";
 			sourceTree = "<group>";
 		};
 		2D16E6871FA4F8E400B85C8A /* Frameworks */ = {
@@ -148,8 +147,8 @@
 		83CBBA001A601CBA00E9B192 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				13B07F961A680F5B00A75B9A /* RNSMKitUIDemoApp.app */,
-				00E356EE1AD99517003FC87E /* RNSMKitUIDemoAppTests.xctest */,
+				13B07F961A680F5B00A75B9A /* Arthlete.app */,
+				00E356EE1AD99517003FC87E /* ArthleteTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -168,9 +167,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		00E356ED1AD99517003FC87E /* RNSMKitUIDemoAppTests */ = {
+		00E356ED1AD99517003FC87E /* ArthleteTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 00E357021AD99517003FC87E /* Build configuration list for PBXNativeTarget "RNSMKitUIDemoAppTests" */;
+			buildConfigurationList = 00E357021AD99517003FC87E /* Build configuration list for PBXNativeTarget "ArthleteTests" */;
 			buildPhases = (
 				C21A9D7FEB1961D24CFBBCEA /* [CP] Check Pods Manifest.lock */,
 				00E356EA1AD99517003FC87E /* Sources */,
@@ -183,14 +182,14 @@
 			dependencies = (
 				00E356F51AD99517003FC87E /* PBXTargetDependency */,
 			);
-			name = RNSMKitUIDemoAppTests;
+			name = ArthleteTests;
 			productName = RNSMKitUIDemoAppTests;
-			productReference = 00E356EE1AD99517003FC87E /* RNSMKitUIDemoAppTests.xctest */;
+			productReference = 00E356EE1AD99517003FC87E /* ArthleteTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		13B07F861A680F5B00A75B9A /* RNSMKitUIDemoApp */ = {
+		13B07F861A680F5B00A75B9A /* Arthlete */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "RNSMKitUIDemoApp" */;
+			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "Arthlete" */;
 			buildPhases = (
 				84B7F5D35E3091AC2C2A394D /* [CP] Check Pods Manifest.lock */,
 				13B07F871A680F5B00A75B9A /* Sources */,
@@ -203,9 +202,9 @@
 			);
 			dependencies = (
 			);
-			name = RNSMKitUIDemoApp;
+			name = Arthlete;
 			productName = RNSMKitUIDemoApp;
-			productReference = 13B07F961A680F5B00A75B9A /* RNSMKitUIDemoApp.app */;
+			productReference = 13B07F961A680F5B00A75B9A /* Arthlete.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -225,7 +224,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "RNSMKitUIDemoApp" */;
+			buildConfigurationList = 83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "Arthlete" */;
 			compatibilityVersion = "Xcode 12.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -238,8 +237,8 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				13B07F861A680F5B00A75B9A /* RNSMKitUIDemoApp */,
-				00E356ED1AD99517003FC87E /* RNSMKitUIDemoAppTests */,
+				13B07F861A680F5B00A75B9A /* Arthlete */,
+				00E356ED1AD99517003FC87E /* ArthleteTests */,
 			);
 		};
 /* End PBXProject section */
@@ -385,7 +384,7 @@
 /* Begin PBXTargetDependency section */
 		00E356F51AD99517003FC87E /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 13B07F861A680F5B00A75B9A /* RNSMKitUIDemoApp */;
+			target = 13B07F861A680F5B00A75B9A /* Arthlete */;
 			targetProxy = 00E356F41AD99517003FC87E /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -400,7 +399,7 @@
 					"DEBUG=1",
 					"$(inherited)",
 				);
-				INFOPLIST_FILE = RNSMKitUIDemoAppTests/Info.plist;
+				INFOPLIST_FILE = Arthlete;
 				IPHONEOS_DEPLOYMENT_TARGET = 13.4;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -414,7 +413,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/RNSMKitUIDemoApp.app/RNSMKitUIDemoApp";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Arthlete.app/Arthlete";
 			};
 			name = Debug;
 		};
@@ -424,7 +423,7 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				COPY_PHASE_STRIP = NO;
-				INFOPLIST_FILE = RNSMKitUIDemoAppTests/Info.plist;
+				INFOPLIST_FILE = Arthlete;
 				IPHONEOS_DEPLOYMENT_TARGET = 13.4;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -438,7 +437,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/RNSMKitUIDemoApp.app/RNSMKitUIDemoApp";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Arthlete.app/Arthlete";
 			};
 			name = Release;
 		};
@@ -447,6 +446,7 @@
 			baseConfigurationReference = B7A0828745C5B0D4F4DAB557 /* Pods-RNSMKitUIDemoApp.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CLANG_ENABLE_MODULES = YES;
 				CURRENT_PROJECT_VERSION = 4;
 				DEVELOPMENT_TEAM = PC6DU86MCS;
@@ -464,7 +464,7 @@
 					"-lc++",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.sency.RNSMKitUIDemoApp;
-				PRODUCT_NAME = RNSMKitUIDemoApp;
+				PRODUCT_NAME = Arthlete;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
@@ -476,6 +476,7 @@
 			baseConfigurationReference = 174E2A83CDA3573F989376DF /* Pods-RNSMKitUIDemoApp.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CLANG_ENABLE_MODULES = YES;
 				CURRENT_PROJECT_VERSION = 4;
 				DEVELOPMENT_TEAM = PC6DU86MCS;
@@ -492,7 +493,7 @@
 					"-lc++",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.sency.RNSMKitUIDemoApp;
-				PRODUCT_NAME = RNSMKitUIDemoApp;
+				PRODUCT_NAME = Arthlete;
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
 			};
@@ -583,10 +584,7 @@
 					"-DFOLLY_CFG_NO_COROUTINES=1",
 					"-DFOLLY_HAVE_CLOCK_GETTIME=1",
 				);
-				OTHER_LDFLAGS = (
-					"$(inherited)",
-					" ",
-				);
+				OTHER_LDFLAGS = "$(inherited)  ";
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
 				USE_HERMES = true;
@@ -673,10 +671,7 @@
 					"-DFOLLY_CFG_NO_COROUTINES=1",
 					"-DFOLLY_HAVE_CLOCK_GETTIME=1",
 				);
-				OTHER_LDFLAGS = (
-					"$(inherited)",
-					" ",
-				);
+				OTHER_LDFLAGS = "$(inherited)  ";
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
 				USE_HERMES = true;
@@ -687,7 +682,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		00E357021AD99517003FC87E /* Build configuration list for PBXNativeTarget "RNSMKitUIDemoAppTests" */ = {
+		00E357021AD99517003FC87E /* Build configuration list for PBXNativeTarget "ArthleteTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				00E356F61AD99517003FC87E /* Debug */,
@@ -696,7 +691,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "RNSMKitUIDemoApp" */ = {
+		13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "Arthlete" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				13B07F941A680F5B00A75B9A /* Debug */,
@@ -705,7 +700,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "RNSMKitUIDemoApp" */ = {
+		83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "Arthlete" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				83CBBA201A601CBA00E9B192 /* Debug */,
