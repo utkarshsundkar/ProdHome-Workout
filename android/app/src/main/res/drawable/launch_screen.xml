@@ -4,6 +4,9 @@
     <item>
         <bitmap
             android:gravity="center"
-            android:src="@drawable/splash"/>
+            android:src="@drawable/logo"
+            android:width="8dp"
+            android:height="8dp"
+            android:scaleType="centerInside"/>
     </item>
 </layer-list> 

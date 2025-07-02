@@ -112,7 +112,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
       level: 'All Levels',
       time: '30-45 min',
       focus: 'Full Body',
-      image: require('../assets/Trial.png'),
+      image: require('../assets/Shoulder.png'),
       exercises: [
         {
           name: 'Shoulder Taps Plank',
@@ -192,6 +192,12 @@ const App = ({ isNightMode, setIsNightMode }) => {
           name: 'Shoulder Taps Plank',
           duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 20, performer: 30, advanced: 40 },
+          image: require('../assets/sideplank.png'),
+        },
+        {
+          name: 'Tuck Hold',
+          duration: { beginner: 30, performer: 60, advanced: 120 },
+          reps: { beginner: 15, performer: 25, advanced: 35 },
           image: require('../assets/sideplank.png'),
         },
       ]
@@ -686,15 +692,21 @@ const App = ({ isNightMode, setIsNightMode }) => {
       image: require('../assets/rstt.png'),
       exercises: [
         {
-          name: 'Bicep Curls',
+          name: 'Push-ups',
+          duration: { beginner: 30, performer: 60, advanced: 120 },
+          reps: { beginner: 10, performer: 20, advanced: 30 },
+          image: require('../assets/rstt.png'),
+        },
+        {
+          name: 'Shoulder Press',
           duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 12, performer: 20, advanced: 30 },
           image: require('../assets/rstt.png'),
         },
         {
-          name: 'Tricep Dips',
+          name: 'Reverse Sit to Table Top',
           duration: { beginner: 30, performer: 60, advanced: 120 },
-          reps: { beginner: 10, performer: 20, advanced: 30 },
+          reps: { beginner: 12, performer: 20, advanced: 30 },
           image: require('../assets/rstt.png'),
         },
       ],
@@ -717,6 +729,36 @@ const App = ({ isNightMode, setIsNightMode }) => {
           name: 'Tuck Hold',
           duration: { beginner: 30, performer: 60, advanced: 120 },
           reps: { beginner: 15, performer: 25, advanced: 35 },
+          image: require('../assets/tuckhold.png'),
+        },
+        {
+          name: 'Push-ups',
+          duration: { beginner: 30, performer: 60, advanced: 120 },
+          reps: { beginner: 10, performer: 20, advanced: 30 },
+          image: require('../assets/tuckhold.png'),
+        },
+        {
+          name: 'Standing Knee Raise Left',
+          duration: { beginner: 30, performer: 60, advanced: 120 },
+          reps: { beginner: 20, performer: 30, advanced: 40 },
+          image: require('../assets/tuckhold.png'),
+        },
+        {
+          name: 'Standing Knee Raise Right',
+          duration: { beginner: 30, performer: 60, advanced: 120 },
+          reps: { beginner: 20, performer: 30, advanced: 40 },
+          image: require('../assets/tuckhold.png'),
+        },
+        {
+          name: 'Jumping Jacks',
+          duration: { beginner: 30, performer: 60, advanced: 120 },
+          reps: { beginner: 15, performer: 25, advanced: 35 },
+          image: require('../assets/tuckhold.png'),
+        },
+        {
+          name: 'Shoulder Taps Plank',
+          duration: { beginner: 30, performer: 60, advanced: 120 },
+          reps: { beginner: 20, performer: 30, advanced: 40 },
           image: require('../assets/tuckhold.png'),
         },
       ],
@@ -1154,6 +1196,18 @@ const App = ({ isNightMode, setIsNightMode }) => {
           reps: { beginner: 20, performer: 30, advanced: 40 },
           image: require('../assets/highknees.png'),
         },
+        {
+          name: 'Side Lunge Left',
+          duration: { beginner: 30, performer: 60, advanced: 120 },
+          reps: { beginner: 10, performer: 20, advanced: 30 },
+          image: require('../assets/highknees.png'),
+        },
+        {
+          name: 'Side Lunge Right',
+          duration: { beginner: 30, performer: 60, advanced: 120 },
+          reps: { beginner: 10, performer: 20, advanced: 30 },
+          image: require('../assets/highknees.png'),
+        },
       ],
     },
     {
@@ -1264,6 +1318,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
     'Overhead Squat': { type: SMWorkoutLibrary.ScoringType.Time, ui: [SMWorkoutLibrary.UIElement.Timer] },
     'Reverse Sit to Table Top': { type: SMWorkoutLibrary.ScoringType.Reps, ui: [SMWorkoutLibrary.UIElement.RepsCounter, SMWorkoutLibrary.UIElement.Timer] },
     'Crunches': { type: SMWorkoutLibrary.ScoringType.Reps, ui: [SMWorkoutLibrary.UIElement.RepsCounter, SMWorkoutLibrary.UIElement.Timer] },
+    'Tuck Hold': { type: SMWorkoutLibrary.ScoringType.Time, ui: [SMWorkoutLibrary.UIElement.Timer] },
     'Glutes Bridge': { type: SMWorkoutLibrary.ScoringType.Reps, ui: [SMWorkoutLibrary.UIElement.RepsCounter, SMWorkoutLibrary.UIElement.Timer] },
     'Air Squat': { type: SMWorkoutLibrary.ScoringType.Reps, ui: [SMWorkoutLibrary.UIElement.RepsCounter, SMWorkoutLibrary.UIElement.Timer] },
     'Jefferson Curl': { type: SMWorkoutLibrary.ScoringType.Time, ui: [SMWorkoutLibrary.UIElement.GaugeOfMotion, SMWorkoutLibrary.UIElement.Timer] },
@@ -2243,6 +2298,8 @@ const App = ({ isNightMode, setIsNightMode }) => {
             break;
         }
 
+        const scoring = exerciseScoringMap[exerciseName] || { type: SMWorkoutLibrary.ScoringType.Reps, ui: [SMWorkoutLibrary.UIElement.RepsCounter, SMWorkoutLibrary.UIElement.Timer] };
+
         return new SMWorkoutLibrary.SMAssessmentExercise(
           detectorId,           // name (using detector ID as name for consistency)
           35,                     // totalSeconds
@@ -2252,18 +2309,18 @@ const App = ({ isNightMode, setIsNightMode }) => {
           detectorId,            // detector
           '',                    // successSound
           new SMWorkoutLibrary.SMScoringParams(
-            scoringType,         // scoring type based on exercise
+            scoring.type,         // scoring type based on exercise
             0.3,                 // threshold
-            targetTime,          // targetTime (for plank and static holds)
-            targetReps,          // targetReps (for dynamic exercises)
+            scoring.type === SMWorkoutLibrary.ScoringType.Time ? 30 : null,          // targetTime (for plank and static holds)
+            scoring.type === SMWorkoutLibrary.ScoringType.Reps ? 10 : null,          // targetReps (for dynamic exercises)
             null,                // targetDistance
             null                 // targetCalories
           ),
           '',                    // failedSound
           exerciseName,          // exerciseTitle (display name)
-          scoringType === SMWorkoutLibrary.ScoringType.Time ? 'Hold the position' : 'Complete the exercise',   // subtitle
-          scoringType === SMWorkoutLibrary.ScoringType.Time ? 'Time' : 'Reps',  // scoreTitle
-          scoringType === SMWorkoutLibrary.ScoringType.Time ? 'seconds held' : 'clean reps'  // scoreSubtitle
+          scoring.type === SMWorkoutLibrary.ScoringType.Time ? 'Hold the position' : 'Complete the exercise',   // subtitle
+          scoring.type === SMWorkoutLibrary.ScoringType.Time ? 'Time' : 'Reps',  // scoreTitle
+          scoring.type === SMWorkoutLibrary.ScoringType.Time ? 'seconds held' : 'clean reps'  // scoreSubtitle
         );
       });
 
@@ -4868,6 +4925,55 @@ const App = ({ isNightMode, setIsNightMode }) => {
           ),
           failedSound,
           'StandingAlternateToeTouch',
+          'Subtitle',
+          'Time',
+          'seconds held'
+        ),
+        new SMWorkoutLibrary.SMAssessmentExercise(
+          'Oblique Crunches',
+          35,
+          'Oblique Crunches',
+          null,
+          [
+            SMWorkoutLibrary.UIElement.RepsCounter,
+            SMWorkoutLibrary.UIElement.Timer,
+          ],
+          'Oblique Crunches',
+          successSound,
+          new SMWorkoutLibrary.SMScoringParams(
+            SMWorkoutLibrary.ScoringType.Reps,
+            0.3,
+            null,
+            5,
+            null,
+            null,
+          ),
+          failedSound,
+          'Oblique Crunches',
+          'Subtitle',
+          'Reps',
+          'clean reps'
+        ),
+        new SMWorkoutLibrary.SMAssessmentExercise(
+          'Tuck Hold',
+          35,
+          'Tuck Hold',
+          null,
+          [
+            SMWorkoutLibrary.UIElement.Timer,
+          ],
+          'Tuck Hold',
+          successSound,
+          new SMWorkoutLibrary.SMScoringParams(
+            SMWorkoutLibrary.ScoringType.Time,
+            0.3,
+            15,
+            null,
+            null,
+            null,
+          ),
+          failedSound,
+          'Tuck Hold',
           'Subtitle',
           'Time',
           'seconds held'
