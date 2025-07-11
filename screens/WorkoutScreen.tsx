@@ -16,6 +16,10 @@ import {
   Platform,
   TextInput,
 } from 'react-native';
+import axios from 'axios';
+import { BASE_URL } from '../baseUrl';
+import { useFocusEffect } from '@react-navigation/native';
+import { useCallback } from 'react';
 import {
   configure,
   startAssessment,
@@ -54,6 +58,7 @@ function formatExerciseName(name) {
 const App = ({ isNightMode, setIsNightMode }) => {
   const [didConfig, setDidConfig] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [customWorkoutLoading, setCustomWorkoutLoading] = useState(false);
   const [showWFPUI, setWPFUI] = useState(false);
   const [week, setWeek] = useState('1');
   const [bodyZone, setBodyZone] = useState(SMWorkoutLibrary.BodyZone.FullBody);
@@ -1426,46 +1431,84 @@ const App = ({ isNightMode, setIsNightMode }) => {
     return { strengths, improvements };
   };
 
-  const handleEvent = async (summary) => {
-    if (!isFocused) return;
+    const userId = "6853e136a4d5b09d329515ff";
+
+
+ const handleEvent = async (summary) => {
+  if (!isFocused) return;
+  try {
+    console.log('Event received:', summary);
+    setSummaryMessage(summary);
+    let parsed: any = null;
+
     try {
-      console.log('Event received:', summary);
-      setSummaryMessage(summary);
-      let parsed: any = null;
-      try {
-        parsed = JSON.parse(summary);
-        setParsedSummaryData(parsed);
-        // Track only exercises with at least one rep/time
-        if (parsed && parsed.exercises && parsed.exercises.length > 0) {
-          const performed = parsed.exercises.filter(ex => {
-            const exerciseName = ex.exercise_info?.pretty_name || ex.exercise_info?.exercise_id || ex.pretty_name || ex.exercise_id || ex.name;
-            const scoring = exerciseScoringMap[exerciseName] || { type: SMWorkoutLibrary.ScoringType.Reps };
-            if (scoring.type === SMWorkoutLibrary.ScoringType.Time) {
-              const total = ex.time_in_position ?? ex.exercise_info?.time_in_position ?? 0;
-              return total > 0;
-            } else {
-              const reps = ex.reps_performed ?? ex.exercise_info?.reps_performed ?? 0;
-              return reps > 0;
-            }
-          }).map(ex =>
+      parsed = JSON.parse(summary);
+      setParsedSummaryData(parsed);
+
+      // Track only exercises with at least one rep/time
+      if (parsed && parsed.exercises && parsed.exercises.length > 0) {
+        const performed = parsed.exercises.filter(ex => {
+          const exerciseName = ex.exercise_info?.pretty_name || ex.exercise_info?.exercise_id || ex.pretty_name || ex.exercise_id || ex.name;
+          const scoring = exerciseScoringMap[exerciseName] || { type: SMWorkoutLibrary.ScoringType.Reps };
+          if (scoring.type === SMWorkoutLibrary.ScoringType.Time) {
+            const total = ex.time_in_position ?? ex.exercise_info?.time_in_position ?? 0;
+            return total > 0;
+          } else {
+            const reps = ex.reps_performed ?? ex.exercise_info?.reps_performed ?? 0;
+            return reps > 0;
+          }
+        });
+        console.log('Performed exercises:', performed);
+
+        // Save performed exercises to backend
+        for (const ex of parsed.exercises) {
+          const exerciseName =
             ex.exercise_info?.pretty_name ||
             ex.exercise_info?.exercise_id ||
             ex.pretty_name ||
             ex.exercise_id ||
-            ex.name
-          );
-          if (performed.length > 0) addPerformedExercises(performed);
-          if (performed.length > 0) DeviceEventEmitter.emit('performedExercisesUpdated');
+            ex.name;
+
+          try {
+            await axios.post(`${BASE_URL}/api/v1/exercise/save`, {
+              userId,
+              exercise_name: exerciseName,
+              reps_performed: ex.reps_performed ?? 0,
+              reps_performed_perfect: ex.reps_performed_perfect ?? 0
+            });
+            console.log(`✅ Saved exercise: ${exerciseName}`);
+
+         
+
+          } catch (err) {
+            console.error(`❌ Failed to save ${exerciseName}:`, err.response?.data || err.message);
+          }
         }
-      } catch (e) {
-        setParsedSummaryData(null);
+
+        // Extract names and update state
+        const performedNames = performed.map(ex =>
+          ex.exercise_info?.pretty_name ||
+          ex.exercise_info?.exercise_id ||
+          ex.pretty_name ||
+          ex.exercise_id ||
+          ex.name
+        );
+
+        if (performedNames.length > 0) addPerformedExercises(performedNames);
+        if (performedNames.length > 0) DeviceEventEmitter.emit('performedExercisesUpdated');
       }
-      setModalVisible(true);
+
     } catch (e) {
-      console.error('Error handling event:', e);
-      Alert.alert('Error', 'Failed to process assessment results.');
+      setParsedSummaryData(null);
     }
-  };
+
+    setModalVisible(true);
+  } catch (e) {
+    console.error('Error handling event:', e);
+    Alert.alert('Error', 'Failed to process assessment results.');
+  }
+};
+
 
   const onDuration = (index) => {
     setDuration(index === 0 ? SMWorkoutLibrary.WorkoutDuration.Long : SMWorkoutLibrary.WorkoutDuration.Short);
@@ -2389,6 +2432,8 @@ const App = ({ isNightMode, setIsNightMode }) => {
 
   const [showDIYModal, setShowDIYModal] = useState(false);
   const [diyPlanName, setDIYPlanName] = useState('');
+  const [diyEntries, setDiyEntries] = useState<any[]>([]);
+  const [todayCustomPlan, setTodayCustomPlan] = useState<any>(null);
   const [diyDays, setDiyDays] = useState([
     { day: 'Monday', type: 'Full Body', customName: '' },
     { day: 'Tuesday', type: 'Cardio', customName: '' },
@@ -2424,6 +2469,35 @@ const App = ({ isNightMode, setIsNightMode }) => {
   // 1. Add state to control edit mode for the workout name
   const [editingDay, setEditingDay] = useState<string | null>(null);
   const [editDayInput, setEditDayInput] = useState('');
+
+//======================================
+
+useFocusEffect(
+  useCallback(() => {
+    const fetchDIYEntries = async () => {
+      try {
+        setCustomWorkoutLoading(true);
+        const response = await axios.get(`${BASE_URL}/api/v1/diy/getAll/${userId}`);
+        const diyList = response?.data?.data ?? [];
+        setDiyEntries(diyList);
+        console.log('🛠️ DIY entries fetched on screen focus:', diyList);
+         const today = new Date().toLocaleDateString('en-US', { weekday: 'long' });
+        const todayCustom = diyList.find(entry => entry.day === today);
+        setTodayCustomPlan(todayCustom);
+        console.log('🛠️ Today\'s custom plan:', todayCustom);
+      } catch (err) {
+        console.error('❌ Failed to fetch DIY entries:', err.response?.data || err.message);
+      } finally {
+        setCustomWorkoutLoading(false);
+      }
+    };
+
+    fetchDIYEntries();
+  }, [userId])
+);
+
+//======================================
+
 
   // Get today's day name
   const todayName = new Date().toLocaleDateString('en-US', { weekday: 'long' });
@@ -2993,58 +3067,85 @@ const App = ({ isNightMode, setIsNightMode }) => {
 
       {/* Your Plan Section */}
       <Text style={{ fontSize: 26, fontWeight: 'bold', color: isNightMode ? '#fff' : '#111', marginLeft: 16, marginBottom: 4, marginTop: 0 }}>Your Custom Plan</Text>
-      <View style={{
-        flexDirection: 'row',
+     {customWorkoutLoading ? (
+  <View style={{
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderColor: '#111',
+    borderWidth: 2,
+    borderRadius: 20,
+    padding: 16,
+    marginHorizontal: 0,
+    width: '97%',
+    alignSelf: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 2,
+    marginBottom: 24,
+    minHeight: 110,
+  }}>
+    <ActivityIndicator size="large" color="#000000" />
+  </View>
+) : (
+  <View style={{
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderColor: '#111',
+    borderWidth: 2,
+    borderRadius: 20,
+    padding: 16,
+    marginHorizontal: 0,
+    width: '97%',
+    alignSelf: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 2,
+    marginBottom: 24,
+    minHeight: 110,
+  }}>
+    <View style={{ flex: 1, justifyContent: 'center' }}>
+      <Text style={{ color: '#1db954', fontSize: 16, marginBottom: 2 }}>{todayName}</Text>
+      <Text style={{ fontWeight: 'bold', fontSize: 20, color: '#222', marginBottom: 2 }}>{todayCustomPlan?.name}</Text>
+      {todayCustomPlan?.exercises.length > 0 ? (
+        todayCustomPlan.exercises.map((ex, idx) => (
+          <Text key={idx} style={{ color: '#222', fontSize: 15, marginBottom: 2 }}>
+            • {ex} ({exerciseDurations[ex] || 30}s)
+          </Text>
+        ))
+      ) : (
+        <Text style={{ color: '#888', fontSize: 15, marginBottom: 2 }}>No exercises selected</Text>
+      )}
+      <Text style={{ color: '#789', fontSize: 15 }}>30 min · {todayCustomPlan?.exercises.length} exercises</Text>
+    </View>
+    <TouchableOpacity
+      style={{
+        width: 70,
+        height: 70,
+        borderRadius: 35,
+        justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#fff',
-        borderColor: '#111',
-        borderWidth: 2,
-        borderRadius: 20,
-        padding: 16,
-        marginHorizontal: 0,
-        width: '97%',
-        alignSelf: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.08,
-        shadowRadius: 6,
-        elevation: 2,
-        marginBottom: 24,
-        minHeight: 110, // Ensures equal height
-      }}>
-        <View style={{ flex: 1, justifyContent: 'center' }}>
-          <Text style={{ color: '#1db954', fontSize: 16, marginBottom: 2 }}>{todayName}</Text>
-          <Text style={{ fontWeight: 'bold', fontSize: 20, color: '#222', marginBottom: 2 }}>{todayCustomName}</Text>
-          {/* List exercises and durations */}
-          {todayExercises.length > 0 ? (
-            todayExercises.map((ex, idx) => (
-              <Text key={idx} style={{ color: '#222', fontSize: 15, marginBottom: 2 }}>• {ex} ({exerciseDurations[ex] || 30}s)</Text>
-            ))
-          ) : (
-            <Text style={{ color: '#888', fontSize: 15, marginBottom: 2 }}>No exercises selected</Text>
-          )}
-          <Text style={{ color: '#789', fontSize: 15 }}>30 min · {todayExercises.length} exercises</Text>
-        </View>
-        <TouchableOpacity
-          style={{
-            width: 70,
-            height: 70,
-            borderRadius: 35,
-            justifyContent: 'center',
-            alignItems: 'center',
-            marginLeft: 10,
-            backgroundColor: 'transparent',
-            overflow: 'hidden',
-          }}
-          onPress={() => setShowCustomPlanModal(true)}
-        >
-          <Image
-            source={require('../assets/PlayButton2.png')}
-            style={{ width: 40, height: 40 }}
-            resizeMode="contain"
-          />
-        </TouchableOpacity>
-      </View>
+        marginLeft: 10,
+        backgroundColor: 'transparent',
+        overflow: 'hidden',
+      }}
+      onPress={() => setShowCustomPlanModal(true)}
+    >
+      <Image
+        source={require('../assets/PlayButton2.png')}
+        style={{ width: 40, height: 40 }}
+        resizeMode="contain"
+      />
+    </TouchableOpacity>
+  </View>
+)}
+
 
       {/* Body Focus Area Section */}
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginHorizontal: 16, marginBottom: 10 }}>
@@ -3724,7 +3825,8 @@ const App = ({ isNightMode, setIsNightMode }) => {
                       exercises: selectedDay ? selectedExercisesForDay[selectedDay] || [] : []
                     });
                     setDiyStep('planner');
-                  }}
+                  }
+}
                   style={{ position: 'absolute', right: 18, padding: 6 }}
                 >
                   <Text style={{ fontSize: 18, color: '#1976D2', fontWeight: 'bold', fontFamily: 'Lexend' }}>Save</Text>
@@ -3740,14 +3842,55 @@ const App = ({ isNightMode, setIsNightMode }) => {
                 </TouchableOpacity>
                 <Text style={{ fontSize: 20, fontWeight: 'bold', color: isNightMode ? '#fff' : '#111', textAlign: 'center', fontFamily: 'Lexend' }}>Select Exercises</Text>
                 <TouchableOpacity
-                  onPress={() => {
-                    // Save selected exercises for the day (implement your save logic here)
-                    console.log('DIY Workout State Saved:', {
-                      selectedDay: selectedDay,
-                      exercises: selectedDay ? selectedExercisesForDay[selectedDay] || [] : []
-                    });
-                    setDiyStep('planner');
-                  }}
+                  onPress={async () => {
+  const exercisesForDay = selectedDay ? selectedExercisesForDay[selectedDay] || [] : [];
+
+  // Prevent empty submissions
+  if (!userId || !selectedDay || exercisesForDay.length === 0) {
+    console.error("Missing required data for DIY workout.");
+    return;
+  }
+
+  // Save selected exercises for the day
+  console.log('DIY Workout State Saved:1', {
+    customName: diyDays.find(d => d.day === selectedDay)?.customName,
+    selectedDay,
+    exercises: exercisesForDay
+  });
+
+ // Send POST request to backend
+  axios.post(`${BASE_URL}/api/v1/diy/save`, {
+    userId,
+    name: diyDays.find(d => d.day === selectedDay)?.customName || 'Custom Workout',
+    day: selectedDay,
+    exercises: exercisesForDay
+  })
+  .then((res) => {
+    console.log('✅ DIY workout saved successfully:', res.data);
+  })
+  .catch((err) => {
+    console.error('❌ Failed to save DIY workout:', err.response?.data || err.message);
+  });
+
+     try {
+        const response = await axios.get(`${BASE_URL}/api/v1/diy/getAll/${userId}`);
+        const diyList = response?.data?.data ?? [];
+        setDiyEntries(diyList);
+        console.log('🛠️ DIY entries fetched:', diyList);
+
+        const today = new Date().toLocaleDateString('en-US', { weekday: 'long' });
+        const todayCustom = diyList.find(entry => entry.day === today);
+        setTodayCustomPlan(todayCustom); // optional state if needed
+        console.log('📅 Today\'s custom DIY:', todayCustom);
+
+      } catch (err) {
+        console.error('❌ Failed to fetch DIY entries:', err.response?.data || err.message);
+      }
+
+  // Move to previous step
+  setDiyStep('planner');
+}
+}
                   style={{ position: 'absolute', right: 18, padding: 6 }}
                 >
                   <Text style={{ fontSize: 18, color: '#1976D2', fontWeight: 'bold', fontFamily: 'Lexend' }}>Save</Text>
@@ -3816,6 +3959,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
       <Modal
         visible={showCustomPlanModal}
         animationType="slide"
+
         transparent={false}
         onRequestClose={() => setShowCustomPlanModal(false)}
       >
@@ -3829,8 +3973,8 @@ const App = ({ isNightMode, setIsNightMode }) => {
           <ScrollView contentContainerStyle={{ padding: 18 }}>
             <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#1db954', marginBottom: 10 }}>{todayCustomName}</Text>
             {/* List selected exercises for today with duration picker */}
-            {(todayCustom && todayExercises.length > 0) ? (
-              todayExercises.map((ex, idx) => (
+            {(todayCustomPlan && todayCustomPlan?.exercises.length > 0) ? (
+              todayCustomPlan.exercises.map((ex, idx) => (
                 <View key={idx} style={{ marginBottom: 20 }}>
                   <Text style={{ fontSize: 16, color: isNightMode ? '#fff' : '#222', marginBottom: 4 ,marginLeft: 10 }}>• {ex}</Text>
                   <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 , marginLeft: 10 }}>
@@ -3859,7 +4003,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
             )}
           </ScrollView>
           {/* Start Button */}
-          {(todayCustom && todayExercises.length > 0) && (
+          {(todayCustomPlan && todayCustomPlan?.exercises.length > 0) && (
             <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0, padding: 18, backgroundColor: isNightMode ? '#111' : '#fff' }}>
               <TouchableOpacity
                 style={{
@@ -3872,7 +4016,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
                   setShowCustomPlanModal(false);
                   setTimeout(async () => {
                     try {
-                      const exercises = todayExercises.map(ex => {
+                      const exercises = todayCustomPlan?.exercises.map(ex => {
                         const duration = exerciseDurations[ex] || 30;
                         const detectorId = exerciseIdMap[ex] || ex.replace(/\s+/g, '');
                         const scoring = exerciseScoringMap[ex] || { type: SMWorkoutLibrary.ScoringType.Reps, ui: [SMWorkoutLibrary.UIElement.RepsCounter, SMWorkoutLibrary.UIElement.Timer] };
@@ -3901,7 +4045,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
                       });
                       const customWorkout = new SMWorkoutLibrary.SMWorkout(
                         `custom-${todayName.toLowerCase()}`,
-                        todayCustomName,
+                        todayCustomPlan.name || `Custom Workout for ${todayName}`,
                         null,
                         null,
                         exercises,
@@ -3909,6 +4053,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
                         null,
                         null
                       );
+                      console.log('Starting custom workout:', customWorkout);
                       const result = await startCustomAssessment(customWorkout, null, true, false);
                       if (result && result.summary) {
                         setSummaryMessage(result.summary);

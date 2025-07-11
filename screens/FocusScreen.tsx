@@ -16,6 +16,8 @@ import {
   Platform,
   TextInput,
 } from 'react-native';
+import axios from 'axios';
+import { BASE_URL } from '../baseUrl';
 import {
   configure,
   startAssessment,
@@ -47,7 +49,7 @@ const formatDuration = (totalSeconds) => {
     const seconds = totalSeconds % 60;
     return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 };
-
+   const userId = "6853e136a4d5b09d329515ff";
 // Add this helper function near the top, after imports:
 function formatExerciseName(name) {
   return name
@@ -858,12 +860,13 @@ const App = ({ isNightMode, setIsNightMode, inFocusMode, setInFocusMode }) => {
   useEffect(() => {
     if (!isFocused) return;
     const didExitWorkoutSubscription = DeviceEventEmitter.addListener('didExitWorkout', params => {
-      handleEvent(params.summary);
+      // handleEvent(params.summary);
       console.log('Received didExitWorkout event with message:', params.summary);
+
     });
 
     const workoutDidFinishSubscription = DeviceEventEmitter.addListener('workoutDidFinish', params => {
-      handleEvent(params.summary);
+      // handleEvent(params.summary);
       console.log('Received workoutDidFinish event with message:', params.summary);
     });
 
@@ -924,57 +927,168 @@ const App = ({ isNightMode, setIsNightMode, inFocusMode, setInFocusMode }) => {
     return { strengths, improvements };
   };
 
-  const handleEvent = async (summary) => {
-    console.log('handleEvent called for summary:', summary);
-    if (!isFocused) return;
-    try {
-      setModalVisible(false);
-      setParsedSummaryData(null);
-      setTimeout(() => {
-    setSummaryMessage(summary);
-        let parsed: { exercises?: any[] } | null = null;
+  //===========================================
+// Added by backend dev do not remove
+const handleEventWithoutApi = async (summary) => {
+  console.log('handleEventWithoutApi called for summary:', summary);
+  if (!isFocused) return;
+
+  try {
+    setModalVisible(false);
+    setParsedSummaryData(null);
+
+    setTimeout(() => {
+      setSummaryMessage(summary);
+
+      let parsed = null;
       try {
         parsed = JSON.parse(summary);
       } catch (e) {
-          parsed = null;
-        }
-        setParsedSummaryData(parsed);
-        // Track only exercises with at least one rep/time
-        if (parsed && parsed.exercises && Array.isArray(parsed.exercises)) {
-          const performed = parsed.exercises.filter(ex => {
-            const exerciseName = ex.exercise_info?.pretty_name || ex.exercise_info?.exercise_id || ex.pretty_name || ex.exercise_id || ex.name;
-            const scoring = exerciseScoringMap[exerciseName] || { type: SMWorkoutLibrary.ScoringType.Reps };
-            if (scoring.type === SMWorkoutLibrary.ScoringType.Time) {
-              const total = ex.time_in_position ?? ex.exercise_info?.time_in_position ?? 0;
-              return total > 0;
-            } else {
-              const reps = ex.reps_performed ?? ex.exercise_info?.reps_performed ?? 0;
-              return reps > 0;
-            }
-          }).map(ex =>
+        console.error("❌ Failed to parse summary JSON:", e);
+        parsed = null;
+      }
+
+      setParsedSummaryData(parsed);
+
+      if (parsed && parsed.exercises && Array.isArray(parsed.exercises)) {
+        const performed = parsed.exercises.filter(ex => {
+          const exerciseName =
             ex.exercise_info?.pretty_name ||
             ex.exercise_info?.exercise_id ||
             ex.pretty_name ||
             ex.exercise_id ||
-            ex.name
-          );
-          if (performed.length > 0) addPerformedExercises(performed);
-          if (performed.length > 0) DeviceEventEmitter.emit('performedExercisesUpdated');
+            ex.name;
+
+          const scoring = exerciseScoringMap[exerciseName] || {
+            type: SMWorkoutLibrary.ScoringType.Reps
+          };
+
+          if (scoring.type === SMWorkoutLibrary.ScoringType.Time) {
+            const total = ex.time_in_position ?? ex.exercise_info?.time_in_position ?? 0;
+            return total > 0;
+          } else {
+            const reps = ex.reps_performed ?? ex.exercise_info?.reps_performed ?? 0;
+            return reps > 0;
+          }
+        });
+
+        const names = performed.map(ex =>
+          ex.exercise_info?.pretty_name ||
+          ex.exercise_info?.exercise_id ||
+          ex.pretty_name ||
+          ex.exercise_id ||
+          ex.name
+        );
+
+        if (names.length > 0) addPerformedExercises(names);
+        if (names.length > 0) DeviceEventEmitter.emit('performedExercisesUpdated');
       }
+
       setModalVisible(true);
-        if (parsed && parsed.exercises) {
-          console.log('Summary after assessment:', parsed.exercises.map((e) => ({
-            name: e.pretty_name || e.exercise_id,
-            total: e.reps_performed,
-            clean: e.reps_performed_perfect
-          })));
-        }
-      }, 200);
-    } catch (e) {
-      console.error('Error handling event:', e);
-      Alert.alert('Error', 'Failed to process assessment results.');
-    }
-  };
+
+      if (parsed?.exercises) {
+        console.log('📝 Summary after assessment:', parsed.exercises.map((e) => ({
+          name: e.pretty_name || e.exercise_id,
+          total: e.reps_performed,
+          clean: e.reps_performed_perfect,
+        })));
+      }
+    }, 200);
+
+  } catch (e) {
+    console.error('❌ Error in handleEventWithoutApi:', e);
+    Alert.alert('Error', 'Failed to process assessment results.');
+  }
+};
+
+
+  //===========================================
+
+const handleEvent = async (summary) => {
+  console.log('handleEvent called for summary1:', summary);
+  if (!isFocused) return;
+
+  try {
+    setModalVisible(false);
+    setParsedSummaryData(null);
+
+    setTimeout(() => {
+      setSummaryMessage(summary);
+
+      let parsed = null;
+      try {
+        parsed = JSON.parse(summary);
+      } catch (e) {
+        parsed = null;
+      }
+
+      setParsedSummaryData(parsed);
+
+      // Track only exercises with at least one rep/time
+      if (parsed && parsed.exercises && Array.isArray(parsed.exercises)) {
+        const performed = parsed.exercises.filter(ex => {
+          const exerciseName = ex.exercise_info?.pretty_name || ex.exercise_info?.exercise_id || ex.pretty_name || ex.exercise_id || ex.name;
+          const scoring = exerciseScoringMap[exerciseName] || { type: SMWorkoutLibrary.ScoringType.Reps };
+          if (scoring.type === SMWorkoutLibrary.ScoringType.Time) {
+            const total = ex.time_in_position ?? ex.exercise_info?.time_in_position ?? 0;
+            return total > 0;
+          } else {
+            const reps = ex.reps_performed ?? ex.exercise_info?.reps_performed ?? 0;
+            return reps > 0;
+          }
+        });
+
+        // Save each focused exercise to backend
+        parsed.exercises.forEach(async (ex) => {
+          const exerciseName =
+            ex.exercise_info?.pretty_name ||
+            ex.exercise_info?.exercise_id ||
+            ex.pretty_name ||
+            ex.exercise_id ||
+            ex.name;
+
+          try {
+            await axios.post(`${BASE_URL}/api/v1/exercise/saveFocus`, {
+              userId,
+              exercise_name: exerciseName,
+              reps_performed: ex.reps_performed ?? 0,
+              reps_performed_perfect: ex.reps_performed_perfect ?? 0,
+            });
+            console.log(`✅ Focus exercise saved: ${exerciseName}`);
+          } catch (err) {
+            console.error(`❌ Failed to save focus exercise (${exerciseName}):`, err.response?.data || err.message);
+          }
+        });
+
+        // Emit updates and update UI
+        const names = performed.map(ex =>
+          ex.exercise_info?.pretty_name ||
+          ex.exercise_info?.exercise_id ||
+          ex.pretty_name ||
+          ex.exercise_id ||
+          ex.name
+        );
+
+        if (names.length > 0) addPerformedExercises(names);
+        if (names.length > 0) DeviceEventEmitter.emit('performedExercisesUpdated');
+      }
+
+      setModalVisible(true);
+
+      if (parsed && parsed.exercises) {
+        console.log('Summary after assessment:', parsed.exercises.map((e) => ({
+          name: e.pretty_name || e.exercise_id,
+          total: e.reps_performed,
+          clean: e.reps_performed_perfect
+        })));
+      }
+    }, 200);
+
+  } catch (e) {
+    console.error('Error handling event:', e);
+    Alert.alert('Error', 'Failed to process assessment results.');
+  }
+};
 
   const onDuration = (index) => {
     setDuration(index === 0 ? SMWorkoutLibrary.WorkoutDuration.Long : SMWorkoutLibrary.WorkoutDuration.Short);
@@ -1011,6 +1125,7 @@ const App = ({ isNightMode, setIsNightMode, inFocusMode, setInFocusMode }) => {
         return [...prev, { name: exerciseName, duration: 30 }];
       }
     });
+    
   };
 
   const handleCategorySelect = async (category: string) => {
@@ -1999,26 +2114,52 @@ const App = ({ isNightMode, setIsNightMode, inFocusMode, setInFocusMode }) => {
         {!inFocusMode ? (
           <TouchableOpacity
             style={{backgroundColor: '#2196F3', borderRadius: 10, minHeight: 56, justifyContent: 'center', alignItems: 'center', marginBottom: 4, marginHorizontal: 2}}
-            onPress={() => setInFocusMode(true)}
+            onPress={async () => {
+    try {
+      const response = await axios.post(`${BASE_URL}/api/v1/focus/start`, {
+        userId
+      });
+
+      const session = response?.data?.data;
+      console.log('🎯 Focus session started:', session);
+
+      // Update local state to indicate you're now in focus mode
+      setInFocusMode(true);
+    } catch (err) {
+      console.error('❌ Failed to start focus session:', err.response?.data || err.message);
+    }
+  }}
           >
             <Text style={{color: '#fff', fontWeight: 'bold', fontSize: 20}}>Start Focus Mode</Text>
           </TouchableOpacity>
         ) : (
           <TouchableOpacity 
             style={{backgroundColor: isNightMode ? '#333' : '#222', borderRadius: 10, minHeight: 56, justifyContent: 'center', alignItems: 'center', marginBottom: 4, marginHorizontal: 2}}
-            onPress={() => {
-              const totalReps = parsedSummaryData && parsedSummaryData.exercises
-                ? parsedSummaryData.exercises.reduce((acc, ex) => acc + (ex.reps_performed || 0), 0)
-                : 0;
-              const cleanReps = parsedSummaryData && parsedSummaryData.exercises
-                ? parsedSummaryData.exercises.reduce((acc, ex) => acc + (ex.reps_performed_perfect || 0), 0)
-                : 0;
-              if (totalReps === cleanReps) {
-                setInFocusMode(false);
-              } else {
-                console.log('Focus mode exited forcefully');
-              }
-            }}
+            onPress={async () => {
+    const totalReps = parsedSummaryData && parsedSummaryData.exercises
+      ? parsedSummaryData.exercises.reduce((acc, ex) => acc + (ex.reps_performed || 0), 0)
+      : 0;
+
+    const cleanReps = parsedSummaryData && parsedSummaryData.exercises
+      ? parsedSummaryData.exercises.reduce((acc, ex) => acc + (ex.reps_performed_perfect || 0), 0)
+      : 0;
+
+    try {
+      const response = await axios.post(`${BASE_URL}/api/v1/focus/end`, {
+        userId
+      });
+
+      console.log('✅ Focus session ended:', response.data);
+
+      if (totalReps === cleanReps) {
+        setInFocusMode(false);
+      } else {
+        console.log('Focus mode exited forcefully');
+      }
+    } catch (err) {
+      console.error('❌ Failed to end focus session:', err.response?.data || err.message);
+    }
+  }}
           >
             <Text style={{color: '#fff', fontWeight: 'bold', fontSize: 20}}>Exit Focus Mode</Text>
           </TouchableOpacity>
@@ -2360,9 +2501,43 @@ const App = ({ isNightMode, setIsNightMode, inFocusMode, setInFocusMode }) => {
                                   true,
                                   false
                                 );
+
+
                                 if (result && result.summary) {
-                                  handleEvent(result.summary);
-                                }
+  const parsed = JSON.parse(result.summary);
+  const exercises = parsed.exercises || [];
+
+  for (const ex of exercises) {
+    const exercise_name =
+      ex.exercise_info?.pretty_name ||
+      ex.exercise_info?.exercise_id ||
+      ex.pretty_name ||
+      ex.exercise_id ||
+      ex.name;
+
+    const reps_performed = ex.reps_performed ?? 0;
+    const reps_performed_perfect = ex.reps_performed_perfect ?? 0;
+
+    try {
+      await axios.patch(`${BASE_URL}/api/v1/exercise/update`, {
+        userId,
+        exercise_name,
+        reps_performed,
+        reps_performed_perfect,
+      });
+      console.log(`✅ Patched: ${exercise_name}`);
+    } catch (err) {
+      console.error(`❌ Patch failed for ${exercise_name}:`, err.response?.data || err.message);
+    }
+  }
+
+  // Then proceed with your existing summary handling
+  handleEventWithoutApi(result.summary);
+
+}
+
+
+
                               } catch (e) {
                                 showAlert('Retry Error', e.message || String(e));
                               }

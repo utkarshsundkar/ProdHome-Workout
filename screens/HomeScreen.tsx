@@ -15,6 +15,13 @@ import {
   SafeAreaView,
   Platform,
 } from 'react-native';
+import axios from 'axios';
+
+import { BASE_URL } from '../baseUrl';
+import { useFocusEffect } from '@react-navigation/native';
+import { useCallback } from 'react';
+
+
 import LinearGradient from 'react-native-linear-gradient';
 import {
   configure,
@@ -50,6 +57,7 @@ function formatExerciseName(name) {
 
 const App = ({ isNightMode, setIsNightMode }) => {
   const [didConfig, setDidConfig] = useState(false);
+  const [creditLoading, setCreditLoading] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showWFPUI, setWPFUI] = useState(false);
   const [week, setWeek] = useState('1');
@@ -677,12 +685,17 @@ const App = ({ isNightMode, setIsNightMode }) => {
     configureSMKitUI();
   }, []);
 
-  useEffect(() => {
+ 
+
+
+useEffect(() => {
     if (!isFocused) return;
     const didExitWorkoutSubscription = DeviceEventEmitter.addListener('didExitWorkout', params => {
       handleEvent(params.summary);
       console.log('Received didExitWorkout event with message:', params.summary);
     });
+
+
 
     const workoutDidFinishSubscription = DeviceEventEmitter.addListener('workoutDidFinish', params => {
       handleEvent(params.summary);
@@ -739,62 +752,163 @@ const App = ({ isNightMode, setIsNightMode }) => {
     return { strengths, improvements };
   };
 
-  const handleEvent = async (summary) => {
-    if (!isFocused) return;
-    try {
-      console.log('Event received:', summary);
-      setSummaryMessage(summary);
-      let parsed: any = null;
+  //=================================
+   const userId = "6853e136a4d5b09d329515ff";
+
+//   useEffect(() => {
+//   if (!userId) return;
+
+//   const intervalId = setInterval(async () => {
+//     try {
+//       const response = await axios.get(`http://localhost:3000/api/v1/credit/get/${userId}`);
+      
+//       const updatedCredits = response?.data?.data?.credits ;
+//       setCreditScore(updatedCredits);
+//       console.log('🔁 Credits updated:', updatedCredits);
+//     } catch (error) {
+//       console.error('❌ Failed to fetch credits:', error.response?.data || error.message);
+//     }
+//   }, 5000); // 5 seconds = 5000ms
+
+//   return () => clearInterval(intervalId); // Cleanup when component unmounts
+// }, [userId]);
+
+
+useFocusEffect(
+  useCallback(() => {
+    setCreditLoading(true);
+    const fetchCredits = async () => {
       try {
-        parsed = JSON.parse(summary);
-        setParsedSummaryData(parsed);
-        // Calculate and store the latest score percent and clean percent
-        if (parsed && parsed.exercises && parsed.exercises.length > 0) {
-          let totalClean = 0;
-          let totalPossible = 0;
-          parsed.exercises.forEach(ex => {
-            const exerciseName = ex.exercise_info?.pretty_name || ex.exercise_info?.exercise_id || ex.pretty_name || ex.exercise_id || ex.name;
-            const scoring = exerciseScoringMap[exerciseName] || { type: SMWorkoutLibrary.ScoringType.Reps };
-            if (scoring.type === SMWorkoutLibrary.ScoringType.Time) {
-              totalClean += ex.time_in_position_perfect ?? ex.exercise_info?.time_in_position_perfect ?? 0;
-              totalPossible += ex.time_in_position ?? ex.exercise_info?.time_in_position ?? 0;
-            } else {
-              totalClean += ex.reps_performed_perfect ?? ex.exercise_info?.reps_performed_perfect ?? 0;
-              totalPossible += ex.reps_performed ?? ex.exercise_info?.reps_performed ?? 0;
-            }
-          });
-          const percent = totalPossible > 0 ? Math.round((totalClean / totalPossible) * 100) : 0;
-          setLastScorePercent(percent);
-          setCleanPercent(percent);
-          // Track performed exercises
-          const performed = parsed.exercises.filter(ex => {
-            const exerciseName = ex.exercise_info?.pretty_name || ex.exercise_info?.exercise_id || ex.pretty_name || ex.exercise_id || ex.name;
-            const scoring = exerciseScoringMap[exerciseName] || { type: SMWorkoutLibrary.ScoringType.Reps };
-            if (scoring.type === SMWorkoutLibrary.ScoringType.Time) {
-              const total = ex.time_in_position ?? ex.exercise_info?.time_in_position ?? 0;
-              return total > 0;
-            } else {
-              const reps = ex.reps_performed ?? ex.exercise_info?.reps_performed ?? 0;
-              return reps > 0;
-            }
-          }).map(ex =>
+        const response = await axios.get(`${BASE_URL}/api/v1/credit/get/${userId}`);
+        const updatedCredits = response?.data?.data?.credits ?? 0;
+        setCreditScore(updatedCredits);
+        console.log('🎯 Credits fetched on screen focus:', updatedCredits);
+      } catch (err) {
+        console.error('❌ Failed to fetch credits:', err.response?.data || err.message);
+      } finally {
+        setCreditLoading(false);
+      }
+    };
+
+    fetchCredits();
+  }, [userId])
+);
+
+
+  //=================================
+
+  const handleEvent = async (summary) => {
+  if (!isFocused) return;
+
+  try {
+    console.log('Event received:', summary);
+    setSummaryMessage(summary);
+
+    let parsed: any = null;
+    try {
+      parsed = JSON.parse(summary);
+      setParsedSummaryData(parsed);
+
+      // 🧠 API call: Save each exercise
+      // 🔁 Replace with actual user ID
+
+      if (parsed?.exercises?.length > 0) {
+        // Calculate clean %
+        let totalClean = 0;
+        let totalPossible = 0;
+
+        for (const ex of parsed.exercises) {
+          const exerciseName =
             ex.exercise_info?.pretty_name ||
             ex.exercise_info?.exercise_id ||
             ex.pretty_name ||
             ex.exercise_id ||
-            ex.name
-          );
-          if (performed.length > 0) addPerformedExercises(performed);
+            ex.name;
+
+          const scoring =
+            exerciseScoringMap[exerciseName] || { type: SMWorkoutLibrary.ScoringType.Reps };
+
+          if (scoring.type === SMWorkoutLibrary.ScoringType.Time) {
+            totalClean += ex.time_in_position_perfect ?? ex.exercise_info?.time_in_position_perfect ?? 0;
+            totalPossible += ex.time_in_position ?? ex.exercise_info?.time_in_position ?? 0;
+          } else {
+            totalClean += ex.reps_performed_perfect ?? ex.exercise_info?.reps_performed_perfect ?? 0;
+            totalPossible += ex.reps_performed ?? ex.exercise_info?.reps_performed ?? 0;
+          }
+
+          // ✅ Save this exercise
+          try {
+            await axios.post(`${BASE_URL}/api/v1/exercise/save`, {
+              userId,
+              exercise_name: exerciseName,
+              reps_performed: ex.reps_performed ?? 0,
+              reps_performed_perfect: ex.reps_performed_perfect ?? 0
+            });
+            console.log(`✅ Saved exercise: ${exerciseName}`);
+
+             // 2️⃣ Fetch latest credits
+    setCreditLoading(true);
+    const creditResponse = await axios.get(`${BASE_URL}/api/v1/credit/get/${userId}`);
+    const updatedCredits = creditResponse?.data?.data?.credits ?? 0;
+
+    // 3️⃣ Update state
+    
+    setCreditScore(updatedCredits);
+            
+    console.log(`🎉 Updated credits: ${updatedCredits}`);
+          } catch (err) {
+            console.error(`❌ Failed to save ${exerciseName}:`, err.response?.data || err.message);
+          }finally {
+            setCreditLoading(false);
+          }
         }
-      } catch (e) {
-        setParsedSummaryData(null);
+
+        const percent = totalPossible > 0 ? Math.round((totalClean / totalPossible) * 100) : 0;
+        setLastScorePercent(percent);
+        setCleanPercent(percent);
+
+        // Track performed exercises
+        const performed = parsed.exercises.filter(ex => {
+          const exerciseName =
+            ex.exercise_info?.pretty_name ||
+            ex.exercise_info?.exercise_id ||
+            ex.pretty_name ||
+            ex.exercise_id ||
+            ex.name;
+
+          const scoring = exerciseScoringMap[exerciseName] || { type: SMWorkoutLibrary.ScoringType.Reps };
+
+          if (scoring.type === SMWorkoutLibrary.ScoringType.Time) {
+            const total = ex.time_in_position ?? ex.exercise_info?.time_in_position ?? 0;
+            return total > 0;
+          } else {
+            const reps = ex.reps_performed ?? ex.exercise_info?.reps_performed ?? 0;
+            return reps > 0;
+          }
+        }).map(ex =>
+          ex.exercise_info?.pretty_name ||
+          ex.exercise_info?.exercise_id ||
+          ex.pretty_name ||
+          ex.exercise_id ||
+          ex.name
+        );
+
+        if (performed.length > 0) addPerformedExercises(performed);
       }
-      setModalVisible(true);
     } catch (e) {
-      console.error('Error handling event:', e);
-      Alert.alert('Error', 'Failed to process assessment results.');
+      console.error("❌ JSON parsing error:", e);
+      setParsedSummaryData(null);
     }
-  };
+
+    setModalVisible(true);
+  } catch (e) {
+    console.error('❌ Error handling event:', e);
+    Alert.alert('Error', 'Failed to process assessment results.');
+  }
+};
+
+
+
 
   const onDuration = (index) => {
     setDuration(index === 0 ? SMWorkoutLibrary.WorkoutDuration.Long : SMWorkoutLibrary.WorkoutDuration.Short);
@@ -1776,7 +1890,13 @@ const App = ({ isNightMode, setIsNightMode }) => {
       
         {/* Credit Counter at Top Right (restored) */}
       <View style={styles.creditCounterContainer}>
-        <Text style={styles.creditCounterText}>{creditScore} <Text style={{fontSize: 22, color: '#4CAF50'}}>🪙</Text></Text>
+  {creditLoading ? (
+    <ActivityIndicator size="small" color="#FFD700" />
+  ) : (
+    <Text style={styles.creditCounterText}>
+      {creditScore} <Text style={{ fontSize: 22, color: '#4CAF50' }}>🪙</Text>
+    </Text>
+  )}
       </View>
 
       {/* Header Section - Remove logo and welcome text */}
