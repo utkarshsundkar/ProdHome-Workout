@@ -1048,7 +1048,7 @@ const handleEvent = async (summary) => {
             ex.name;
 
           try {
-            await axios.post(`${BASE_URL}/api/v1/exercise/saveFocus`, {
+            await axios.post(`${BASE_URL}/exercise/saveFocus`, {
               userId,
               exercise_name: exerciseName,
               reps_performed: ex.reps_performed ?? 0,
@@ -2116,7 +2116,7 @@ const handleEvent = async (summary) => {
             style={{backgroundColor: '#2196F3', borderRadius: 10, minHeight: 56, justifyContent: 'center', alignItems: 'center', marginBottom: 4, marginHorizontal: 2}}
             onPress={async () => {
     try {
-      const response = await axios.post(`${BASE_URL}/api/v1/focus/start`, {
+      const response = await axios.post(`${BASE_URL}/focus/start`, {
         userId
       });
 
@@ -2145,7 +2145,7 @@ const handleEvent = async (summary) => {
       : 0;
 
     try {
-      const response = await axios.post(`${BASE_URL}/api/v1/focus/end`, {
+      const response = await axios.post(`${BASE_URL}/focus/end`, {
         userId
       });
 
@@ -2519,7 +2519,7 @@ const handleEvent = async (summary) => {
     const reps_performed_perfect = ex.reps_performed_perfect ?? 0;
 
     try {
-      await axios.patch(`${BASE_URL}/api/v1/exercise/update`, {
+      await axios.patch(`${BASE_URL}/exercise/update`, {
         userId,
         exercise_name,
         reps_performed,

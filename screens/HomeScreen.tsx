@@ -779,7 +779,7 @@ useFocusEffect(
     setCreditLoading(true);
     const fetchCredits = async () => {
       try {
-        const response = await axios.get(`${BASE_URL}/api/v1/credit/get/${userId}`);
+        const response = await axios.get(`${BASE_URL}/credit/get/${userId}`);
         const updatedCredits = response?.data?.data?.credits ?? 0;
         setCreditScore(updatedCredits);
         console.log('🎯 Credits fetched on screen focus:', updatedCredits);
@@ -838,7 +838,7 @@ useFocusEffect(
 
           // ✅ Save this exercise
           try {
-            await axios.post(`${BASE_URL}/api/v1/exercise/save`, {
+            await axios.post(`${BASE_URL}/exercise/save`, {
               userId,
               exercise_name: exerciseName,
               reps_performed: ex.reps_performed ?? 0,
@@ -848,7 +848,7 @@ useFocusEffect(
 
              // 2️⃣ Fetch latest credits
     setCreditLoading(true);
-    const creditResponse = await axios.get(`${BASE_URL}/api/v1/credit/get/${userId}`);
+    const creditResponse = await axios.get(`${BASE_URL}/credit/get/${userId}`);
     const updatedCredits = creditResponse?.data?.data?.credits ?? 0;
 
     // 3️⃣ Update state

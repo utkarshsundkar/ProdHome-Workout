@@ -1470,7 +1470,7 @@ const App = ({ isNightMode, setIsNightMode }) => {
             ex.name;
 
           try {
-            await axios.post(`${BASE_URL}/api/v1/exercise/save`, {
+            await axios.post(`${BASE_URL}/exercise/save`, {
               userId,
               exercise_name: exerciseName,
               reps_performed: ex.reps_performed ?? 0,
@@ -2477,7 +2477,7 @@ useFocusEffect(
     const fetchDIYEntries = async () => {
       try {
         setCustomWorkoutLoading(true);
-        const response = await axios.get(`${BASE_URL}/api/v1/diy/getAll/${userId}`);
+        const response = await axios.get(`${BASE_URL}/diy/getAll/${userId}`);
         const diyList = response?.data?.data ?? [];
         setDiyEntries(diyList);
         console.log('🛠️ DIY entries fetched on screen focus:', diyList);
@@ -3859,7 +3859,7 @@ useFocusEffect(
   });
 
  // Send POST request to backend
-  axios.post(`${BASE_URL}/api/v1/diy/save`, {
+  axios.post(`${BASE_URL}/diy/save`, {
     userId,
     name: diyDays.find(d => d.day === selectedDay)?.customName || 'Custom Workout',
     day: selectedDay,
@@ -3873,7 +3873,7 @@ useFocusEffect(
   });
 
      try {
-        const response = await axios.get(`${BASE_URL}/api/v1/diy/getAll/${userId}`);
+        const response = await axios.get(`${BASE_URL}/diy/getAll/${userId}`);
         const diyList = response?.data?.data ?? [];
         setDiyEntries(diyList);
         console.log('🛠️ DIY entries fetched:', diyList);
